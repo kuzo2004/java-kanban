@@ -5,7 +5,7 @@ public class Subtask extends Task {
     private Epic parentEpic;
 
 
-    public Subtask(String name, String description, Epic parentEpic) { // для создания новой задачи
+    public Subtask(String name, String description, Epic parentEpic) {
         super(name, description);
         this.parentEpic = parentEpic;
         this.parentEpic.addSubtask(this);
@@ -21,7 +21,7 @@ public class Subtask extends Task {
     // набор действий в каждом типе задачи свой, по смыслу это подготовка к удалению
     // хотелось все эти действия объединить в одном месте
     public boolean doBeforeDelete() {
-        parentEpic.deleteSubtask(this); //удалить ссылку на эту подзадачу из списка подзадач, который хранится в ru.yandex.practicum.entity.Epic
+        parentEpic.deleteSubtask(this); //удалить ссылку на эту подзадачу из списка подзадач, который хранится Epic
         return true;
     }
 

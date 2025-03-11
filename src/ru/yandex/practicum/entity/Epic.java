@@ -11,7 +11,7 @@ public class Epic extends Task {
 
     public Epic(String name, String description) {
         super(name, description);
-    } // для создания новой задачи
+    }
 
     public Epic(int uniqueID, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
         super(uniqueID, name, description);

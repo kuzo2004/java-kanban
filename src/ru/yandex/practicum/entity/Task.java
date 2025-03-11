@@ -30,8 +30,8 @@ public class Task {
         this.status = status;
     }
 
-    public int generateId(){
-      return   ++counter;
+    public int generateId() {
+        return ++counter;
     }
 
     public int getId() {
@@ -62,9 +62,10 @@ public class Task {
         return TaskType.valueOf(this.getClass().getSimpleName().toUpperCase());
     }
 
+    // переопределяется в наследниках, здесь пока не используется
     public boolean doBeforeDelete() { // в наследниках переопределяем
         return true;
-    }  // переопределяется в наследниках
+    }
 
     @Override
     public boolean equals(Object o) {
