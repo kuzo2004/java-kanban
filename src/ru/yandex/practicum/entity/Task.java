@@ -1,7 +1,9 @@
+package ru.yandex.practicum.entity;
+
 import java.util.Objects;
 
 public class Task {
-    private int UniqueID;
+    private int id;
     private String name;
     private String description;
     protected Status status;
@@ -9,29 +11,31 @@ public class Task {
     public static int counter;
 
 
-    public Task(String name, String description) { // для создания новой задачи
+    public Task(String name, String description) {
+        this.id = generateId();
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
-        counter++;
-        this.UniqueID = counter;
     }
 
-    public Task(int uniqueID, String name, String description) { // при обновлении (для наследников)
-        UniqueID = uniqueID;
+    public Task(int id, String name, String description) { // при обновлении (для наследников)
+        this.id = id;
         this.name = name;
         this.description = description;
 
     }
 
-    public Task(int uniqueID, String name, String description, Status status) { // при обновлении самого класса
-        this(uniqueID, name, description);
+    public Task(int id, String name, String description, Status status) { // при обновлении самого класса
+        this(id, name, description);
         this.status = status;
     }
 
+    public int generateId(){
+      return   ++counter;
+    }
 
-    public int getUniqueID() {
-        return UniqueID;
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -58,26 +62,26 @@ public class Task {
         return TaskType.valueOf(this.getClass().getSimpleName().toUpperCase());
     }
 
-    public boolean prepareDelete() { // в наследниках переопределяем
+    public boolean doBeforeDelete() { // в наследниках переопределяем
         return true;
-    }  // переопределяется в наследниках, здесь пока не нужен
+    }  // переопределяется в наследниках
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return UniqueID == task.UniqueID;
+        return id == task.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(UniqueID);
+        return Objects.hashCode(id);
     }
 
     @Override
     public String toString() {
-        return this.getClass().getName() + "     {" +
-                "UniqueID=" + UniqueID +
+        return this.getClass().getSimpleName() + "     {" +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description.length='" + description.length() + '\'' +
                 ", status=" + status +

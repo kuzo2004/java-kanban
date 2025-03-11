@@ -1,3 +1,5 @@
+package ru.yandex.practicum.entity;
+
 public enum TaskType {
     TASK(Task.class),
     EPIC(Epic.class),

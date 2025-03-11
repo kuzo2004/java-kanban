@@ -1,3 +1,6 @@
+package ru.yandex.practicum.service;
+
+import ru.yandex.practicum.entity.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,7 +16,7 @@ public class TaskManager {
 
 
     public void addTask(Task task) {
-        tasks.put(task.getUniqueID(), task);
+        tasks.put(task.getId(), task);
     }
 
 
@@ -30,7 +33,7 @@ public class TaskManager {
 
         for (Task task : tasks.values()) {
             if (task.getClass() == taskClass) {
-                tasksByType.put(task.getUniqueID(), task);
+                tasksByType.put(task.getId(), task);
             }
         }
         return tasksByType;
@@ -54,7 +57,7 @@ public class TaskManager {
         while (iterator.hasNext()) {
             Map.Entry<Integer, Task> entry = iterator.next();
             if (entry.getValue().getClass() == taskClass &&
-                    entry.getValue().prepareDelete()) {
+                    entry.getValue().doBeforeDelete()) {
                 System.out.println("Удаление " + entry.getValue());
                 iterator.remove();
             }
@@ -76,7 +79,7 @@ public class TaskManager {
             case SUBTASK -> new Subtask(name, description, parentEpic);
         };
 
-        tasks.put(task.getUniqueID(), task);
+        tasks.put(task.getId(), task);
         return task;
     }
 
@@ -86,19 +89,19 @@ public class TaskManager {
         Task task = switch (taskType) {
             case TASK -> new Task(uniqueID, name, description, status);
             case EPIC -> new Epic(uniqueID, name, description,
-                    ((Epic) tasks.get(uniqueID)).subtasks);
+                    ((Epic) tasks.get(uniqueID)).getSubtasks());
             case SUBTASK -> new Subtask(uniqueID, name, description, status,
-                    ((Subtask) tasks.get(uniqueID)).getParentTask());
+                    ((Subtask) tasks.get(uniqueID)).getParentEpic());
         };
 
-        tasks.put(task.getUniqueID(), task);
+        tasks.put(task.getId(), task);
         return task;
     }
 
     public boolean deleteTask(Task task) {
 
-        if (task.prepareDelete()) {
-            tasks.remove(task.getUniqueID());
+        if (task.doBeforeDelete()) {
+            tasks.remove(task.getId());
             return true;
         }
         return false;
@@ -106,8 +109,8 @@ public class TaskManager {
 
     public Map<Integer, Task> getSubtasksByEpic(Epic epic) {
 
-        if (epic.subtasks.isEmpty()) {
-            System.out.println("Для задачи " + epic.getUniqueID() + " список пуст.");
+        if (epic.getSubtasks().isEmpty()) {
+            System.out.println("Для задачи " + epic.getId() + " список пуст.");
             return null;
         }
         return epic.getSubtasks();

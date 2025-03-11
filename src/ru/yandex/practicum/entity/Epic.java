@@ -1,3 +1,5 @@
+package ru.yandex.practicum.entity;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,12 +20,12 @@ public class Epic extends Task {
     }
 
     public void addSubtask(Subtask subtask) {
-        subtasks.put(subtask.getUniqueID(), subtask);
+        subtasks.put(subtask.getId(), subtask);
         recountStatus();
     }
 
     public void deleteSubtask(Subtask subtask) {
-        subtasks.remove(subtask.getUniqueID());
+        subtasks.remove(subtask.getId());
         recountStatus();
     }
 
@@ -58,11 +60,17 @@ public class Epic extends Task {
     }
 
     @Override
-    public boolean prepareDelete() {
+    // набор действий в каждом типе задачи свой, по смыслу это подготовка к удалению
+    // хотелось все эти действия объединить в одном месте
+    public boolean doBeforeDelete() {
+        return checkBeforeDelete();
+    }
+
+    public  boolean checkBeforeDelete() {
         if (subtasks.isEmpty()) {
             return true;
         } else {
-            System.out.println("Нельзя удалить задачу " + this.getUniqueID() + " так как ее список подзадач полон.");
+            System.out.println("Нельзя удалить задачу " + this.getId() + " так как ее список подзадач полон.");
             return false;
         }
     }
