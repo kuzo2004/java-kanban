@@ -34,6 +34,15 @@ public class Task {
         return ++counter;
     }
 
+    //при необходимости переопределяется в наследниках
+    public boolean checkBeforeDelete() {
+        return true;
+    }
+
+    //при необходимости переопределяется в наследниках
+    public void doBeforeDelete() {
+    }
+
     public int getId() {
         return id;
     }
@@ -60,11 +69,6 @@ public class Task {
 
     public TaskType getTaskType() {
         return TaskType.valueOf(this.getClass().getSimpleName().toUpperCase());
-    }
-
-    // переопределяется в наследниках, здесь пока не используется
-    public boolean doBeforeDelete() { // в наследниках переопределяем
-        return true;
     }
 
     @Override

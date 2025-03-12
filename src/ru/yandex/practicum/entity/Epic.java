@@ -60,13 +60,7 @@ public class Epic extends Task {
     }
 
     @Override
-    // набор действий в каждом типе задачи свой, по смыслу это подготовка к удалению
-    // хотелось все эти действия объединить в одном месте
-    public boolean doBeforeDelete() {
-        return checkBeforeDelete();
-    }
-
-    public  boolean checkBeforeDelete() {
+    public boolean checkBeforeDelete() {
         if (subtasks.isEmpty()) {
             return true;
         } else {

@@ -18,11 +18,9 @@ public class Subtask extends Task {
     }
 
     @Override
-    // набор действий в каждом типе задачи свой, по смыслу это подготовка к удалению
-    // хотелось все эти действия объединить в одном месте
-    public boolean doBeforeDelete() {
-        parentEpic.deleteSubtask(this); //удалить ссылку на эту подзадачу из списка подзадач, который хранится Epic
-        return true;
+    public void doBeforeDelete() {
+        // Удалить эту подзадачу из списка подзадач. Этот список хранится у родителя(Epic).
+        parentEpic.deleteSubtask(this);
     }
 
     public Epic getParentEpic() {

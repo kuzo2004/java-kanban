@@ -57,8 +57,9 @@ public class TaskManager {
         while (iterator.hasNext()) {
             Map.Entry<Integer, Task> entry = iterator.next();
             if (entry.getValue().getClass() == taskClass &&
-                    entry.getValue().doBeforeDelete()) {
+                    entry.getValue().checkBeforeDelete()) {
                 System.out.println("Удаление " + entry.getValue());
+                entry.getValue().doBeforeDelete();
                 iterator.remove();
             }
         }
@@ -99,12 +100,13 @@ public class TaskManager {
     }
 
     public boolean deleteTask(Task task) {
-
-        if (task.doBeforeDelete()) {
-            tasks.remove(task.getId());
-            return true;
+        if (!task.checkBeforeDelete()) {
+            return false;
         }
-        return false;
+
+        task.doBeforeDelete();
+        tasks.remove(task.getId());
+        return true;
     }
 
     public Map<Integer, Task> getSubtasksByEpic(Epic epic) {
@@ -115,6 +117,5 @@ public class TaskManager {
         }
         return epic.getSubtasks();
     }
-
-
 }
+
