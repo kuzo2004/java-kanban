@@ -15,9 +15,19 @@ public class Epic extends Task {
 
     public Epic(int uniqueID, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
         super(uniqueID, name, description);
-        this.subtasks = subtasks;
+        checkSubtaskList();
         recountStatus();
     }
+
+    //проверка списка подзадач, если тип подзадачи отличен от SUBTASK, удалим задачу из списка
+    public void checkSubtaskList() {
+        for (Task task : subtasks.values()) {
+            if (!(task instanceof Subtask)) {
+                subtasks.remove(task.getId());
+            }
+        }
+    }
+
 
     public void addSubtask(Subtask subtask) {
         subtasks.put(subtask.getId(), subtask);

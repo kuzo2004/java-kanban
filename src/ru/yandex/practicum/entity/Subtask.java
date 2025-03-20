@@ -17,6 +17,16 @@ public class Subtask extends Task {
         this.parentEpic.addSubtask(this);
     }
 
+    public Subtask(int uniqueID, String name, String description, Status status, Task parentEpic) {
+        super(uniqueID, name, description);
+        if (parentEpic instanceof Epic) {
+            this.parentEpic = (Epic) parentEpic;
+            this.parentEpic.addSubtask(this);
+        }
+
+
+    }
+
     @Override
     public void doBeforeDelete() {
         // Удалить эту подзадачу из списка подзадач. Этот список хранится у родителя(Epic).
@@ -30,7 +40,7 @@ public class Subtask extends Task {
     @Override
     public String toString() {
         return super.toString() +
-                " parentEpic= " + parentEpic.getId() +
+                " parentEpic= " + (parentEpic != null ? parentEpic.getId() : "null") +
                 '}';
     }
 }

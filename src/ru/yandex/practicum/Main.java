@@ -1,15 +1,19 @@
 package ru.yandex.practicum;
 
 import ru.yandex.practicum.entity.*;
+import ru.yandex.practicum.manager.Managers;
+import ru.yandex.practicum.manager.Managers.*;
+import ru.yandex.practicum.service.InMemoryTaskManager;
 import ru.yandex.practicum.service.TaskManager;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
-    public static TaskManager manager = new TaskManager();
+    public static TaskManager manager = Managers.getDefault();
 
     public static void main(String[] args) {
 
@@ -84,6 +88,17 @@ public class Main {
                     }
                     break;
                 case "8": // Выход из программы
+                    System.out.println("История просмотренных задач");
+                    List<Task> historyTasks = manager.getHistory();
+                    if (historyTasks.isEmpty()) {
+                        System.out.println("История просмотренных задач пуста.");
+                    } else {
+                        for (Task t : historyTasks) {
+                            System.out.print(t.getId() + " ");
+                        }
+                    }
+                    break;
+                case "9": // Выход из программы
                     System.out.println("Завершение программы. До свиданья!");
                     return;
                 default:
@@ -103,7 +118,8 @@ public class Main {
         System.out.println("5 - Обновление задачи.");
         System.out.println("6 - Удаление задачи по идентификатору.");
         System.out.println("7 - Получение списка всех подзадач определённого эпика.");
-        System.out.println("8 - Выход из программы.");
+        System.out.println("8 - История просмотра задач.");
+        System.out.println("9 - Выход из программы.");
     }
 
     public static Map<Integer, Task> getTasksByType() {
