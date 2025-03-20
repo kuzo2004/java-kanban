@@ -2,8 +2,6 @@ package ru.yandex.practicum;
 
 import ru.yandex.practicum.entity.*;
 import ru.yandex.practicum.manager.Managers;
-import ru.yandex.practicum.manager.Managers.*;
-import ru.yandex.practicum.service.InMemoryTaskManager;
 import ru.yandex.practicum.service.TaskManager;
 
 import java.util.List;
@@ -201,7 +199,7 @@ public class Main {
         String newDescription = oldTask.getDescription();
         Status newStatus = oldTask.getStatus();
 
-        // выбор поля для обновления, т.к. за один раз обновляем только одно поле в задаче
+        // выбор поля для обновления, так как за один раз обновляем только одно поле в задаче
         System.out.print("Введите поле, которое хотите обновить: name, description, status:");
         String input = scanner.nextLine().trim();
 
