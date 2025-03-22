@@ -18,13 +18,11 @@ public class Subtask extends Task {
     }
 
     public Subtask(int uniqueID, String name, String description, Status status, Task parentEpic) {
-        super(uniqueID, name, description);
+        super(uniqueID, name, description, status);
         if (parentEpic instanceof Epic) {
             this.parentEpic = (Epic) parentEpic;
             this.parentEpic.addSubtask(this);
         }
-
-
     }
 
     @Override
