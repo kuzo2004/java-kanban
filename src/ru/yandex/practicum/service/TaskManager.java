@@ -4,34 +4,35 @@ import ru.yandex.practicum.entity.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface TaskManager {
 
-     void addTask(Task task);
+    void addTask(Task task);
 
-     Map<Integer, Task> getAllTasks();
+    Map<Integer, Task> getAllTasks();
 
-     Map<Integer, Task> getAllTasksByType(TaskType taskType);
+    Map<Integer, Task> getAllTasksByType(TaskType taskType);
 
-     void clearAllTasks();
+    void clearAllTasks();
 
-     void clearTasksByType(TaskType taskType);
+    void clearTasksByType(TaskType taskType);
 
-     Task getTaskById(int id);
+    Task getTaskById(int id);
 
-     Task createTask(TaskType taskType, String name, String description, Epic parentEpic);
+    Task createTask(TaskType taskType, String name, String description, Epic parentEpic);
 
-     Task updateTask(TaskType taskType, int uniqueID, String name, String description, Status status);
+    Task updateTask(TaskType taskType, int uniqueID, String name, String description, Status status);
 
-     boolean deleteTask(Task task);
+    boolean deleteTask(Task task);
 
-     Map<Integer, Task> getSubtasksByEpic(Epic epic);
+    Optional<Map<Integer, Task>> getSubtasksByEpic(Epic epic);
 
-     List<Task> getHistory();
+    List<Task> getHistory();
 
-     HistoryManager getHistoryManager();
+    HistoryManager getHistoryManager();
 
-     void clearCounterForId();
+    void clearCounterForId();
 
 
 }

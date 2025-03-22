@@ -6,6 +6,7 @@ import ru.yandex.practicum.service.TaskManager;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 
 
@@ -75,15 +76,18 @@ public class Main {
                     Epic parentTask = askParentTaskFromUser();
 
                     if (parentTask != null) {
-                        allTasks = manager.getSubtasksByEpic(parentTask);
+                        Optional<Map<Integer, Task>> subtasksOptional = manager.getSubtasksByEpic(parentTask);
 
-                        if (allTasks != null) {
+                        if (subtasksOptional.isPresent()) {
+                            allTasks = subtasksOptional.get();
                             System.out.println("Задача " + parentTask.getId() + " содержит подзадачи: ");
                             printTasks(allTasks);
                         } else {
                             System.out.println("Задача " + parentTask.getId() + " не содержит подзадач.");
                         }
                     }
+
+
                     break;
                 case "8": // Выход из программы
                     System.out.println("История просмотренных задач");
@@ -213,7 +217,7 @@ public class Main {
                 break;
             case "status":
                 if (oldTask instanceof Epic) {
-                    System.out.println("Статус у задачи ru.yandex.practicum.entity.Epic нельзя поменять вручную, он обновляется автоматически.");
+                    System.out.println("Статус у задачи Epic нельзя поменять вручную, он обновляется автоматически.");
                     return null;
                 }
                 newStatus = askTaskStatusFromUser();

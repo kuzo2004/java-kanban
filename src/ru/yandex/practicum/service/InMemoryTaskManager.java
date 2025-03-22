@@ -129,13 +129,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Map<Integer, Task> getSubtasksByEpic(Epic epic) {
-
+    public Optional<Map<Integer, Task>> getSubtasksByEpic(Epic epic) {
         if (epic.getSubtasks().isEmpty()) {
             System.out.println("Для задачи " + epic.getId() + " список пуст.");
-            return null;
+            return Optional.empty();
         }
-        return epic.getSubtasks();
+        return Optional.of(epic.getSubtasks());
     }
 
     @Override

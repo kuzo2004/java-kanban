@@ -15,12 +15,13 @@ public class Epic extends Task {
 
     public Epic(int uniqueID, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
         super(uniqueID, name, description);
-        checkSubtaskList();
+        this.subtasks = subtasks;
+        removeNonSubtaskItems();
         recountStatus();
     }
 
-    //проверка списка подзадач, если тип подзадачи отличен от SUBTASK, удалим задачу из списка
-    public void checkSubtaskList() {
+
+    public void removeNonSubtaskItems() {
         for (Task task : subtasks.values()) {
             if (!(task instanceof Subtask)) {
                 subtasks.remove(task.getId());
@@ -43,7 +44,7 @@ public class Epic extends Task {
         return subtasks;
     }
 
-    public String printSubtasks() {
+    public String getSubtasksListAsString() {
         StringBuilder sb = new StringBuilder();
         for (Task task : subtasks.values()) {
             if (!sb.isEmpty()) {
@@ -52,7 +53,6 @@ public class Epic extends Task {
             sb.append(task.hashCode());
         }
         return sb.toString();
-
     }
 
     public void recountStatus() {
@@ -74,7 +74,7 @@ public class Epic extends Task {
         if (subtasks.isEmpty()) {
             return true;
         } else {
-            System.out.println("Нельзя удалить задачу " + this.getId() + " так как ее список подзадач полон.");
+            System.out.println("Нельзя удалить задачу " + this.getId() + " так как ее список подзадач не пуст.");
             return false;
         }
     }
@@ -83,7 +83,7 @@ public class Epic extends Task {
     public String toString() {
         return super.toString() +
                 " subtasks= {" +
-                printSubtasks() +
+                getSubtasksListAsString() +
                 '}';
     }
 }
