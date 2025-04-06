@@ -11,7 +11,7 @@ public class Subtask extends Task {
         this.parentEpic.addSubtask(this);
     }
 
-    public Subtask(int uniqueID, String name, String description, Status status, Epic parentEpic) {// при обновлении
+    public Subtask(int uniqueID, String name, String description, Status status, Epic parentEpic) {
         super(uniqueID, name, description, status);
         this.parentEpic = parentEpic;
         this.parentEpic.addSubtask(this);
