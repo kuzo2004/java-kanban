@@ -25,6 +25,16 @@ public class Subtask extends Task {
         }
     }
 
+    // конструктор копирования
+    public Subtask(Subtask other) {
+        super(other);
+        this.parentEpic = other.parentEpic.copy();
+    }
+
+    public Subtask copy() {
+        return new Subtask(this);
+    }
+
     @Override
     public void doBeforeDelete() {
         // Удалить эту подзадачу из списка подзадач. Этот список хранится у родителя(Epic).
@@ -42,3 +52,4 @@ public class Subtask extends Task {
                 '}';
     }
 }
+

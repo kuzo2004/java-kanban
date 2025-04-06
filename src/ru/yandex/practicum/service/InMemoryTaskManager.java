@@ -32,10 +32,16 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskById(int id) {
-        Task task = tasks.get(id);
-        historyManager.add(task);
-        return task;
+    public Optional<Task> getTaskById(int id) {
+        if (!tasks.containsKey(id)) {
+            return Optional.empty();
+        }
+        return Optional.of(tasks.get(id));
+    }
+
+    @Override
+    public void saveTaskToHistory(int id) {
+        historyManager.add(tasks.get(id));
     }
 
     @Override
@@ -62,6 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearAllTasks() {
         int tasksSizeBefore = tasks.size();
+        historyManager.clear();
         tasks.clear();
         System.out.println("Удалено задач " + tasksSizeBefore + " шт.");
     }
@@ -81,7 +88,9 @@ public class InMemoryTaskManager implements TaskManager {
                     entry.getValue().checkBeforeDelete()) {
                 System.out.println("Удаление " + entry.getValue());
                 entry.getValue().doBeforeDelete();
+                historyManager.remove(entry.getKey());
                 iterator.remove();
+
             }
         }
         System.out.println("Удалено задач " + (tasksSizeBefore - tasks.size()) + " шт.");
@@ -124,6 +133,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         task.doBeforeDelete();
+        historyManager.remove(task.getId());
         tasks.remove(task.getId());
         return true;
     }
@@ -142,4 +152,5 @@ public class InMemoryTaskManager implements TaskManager {
         Task.counter = 0;
     }
 }
+
 

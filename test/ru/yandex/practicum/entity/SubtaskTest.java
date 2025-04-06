@@ -36,3 +36,4 @@ class SubtaskTest {
         assertNull(subtask2.getParentEpic(), "Нельзя подзадачу назначить чьем-то эпиком.");
     }
 }
+

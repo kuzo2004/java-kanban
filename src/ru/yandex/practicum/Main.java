@@ -49,16 +49,18 @@ public class Main {
                 case "2": // Удаление задач по типу
                     clearTasksByType();
                     break;
-                case "3": // Получение задачи по идентификатору
-                    task = askTaskIdFromUser();
-                    if (task != null) {
-                        System.out.println("Найдена задача: " + task);
+                case "3": // Получение задачи по идентификатору и запись задачи в историю
+                    Optional<Task> optionalTask = askTaskIdAndSaveToHistory();
+                    if (optionalTask.isPresent()) {
+                        System.out.println("Найдена задача: " + optionalTask);
                     }
                     break;
                 case "4": // Создание новой задачи
                     task = prepareAndCreateTask();
                     if (task != null) {
                         System.out.println("Создана задача: " + task);
+                    } else {
+                        System.out.println("Задача не создана.");
                     }
                     break;
                 case "5": // Обновление задачи по идентификатору
@@ -86,8 +88,6 @@ public class Main {
                             System.out.println("Задача " + parentTask.getId() + " не содержит подзадач.");
                         }
                     }
-
-
                     break;
                 case "8": // Выход из программы
                     System.out.println("История просмотренных задач");
@@ -123,6 +123,7 @@ public class Main {
         System.out.println("8 - История просмотра задач.");
         System.out.println("9 - Выход из программы.");
     }
+
 
     public static Map<Integer, Task> getTasksByType() {
         System.out.println("Для получение полного списка задач нажмите - ENTER,  для выбора фильтра - ПРОБЕЛ.");
@@ -193,10 +194,11 @@ public class Main {
     public static Task prepareAndUpdateTask() {
 
         // выбрать задачу для обновления
-        Task oldTask = askTaskIdFromUser();
-        if (oldTask == null) {
+        Optional<Task> optionalTask = askTaskIdFromUser();
+        if (optionalTask.isEmpty()) {
             return null;
         }
+        Task oldTask = optionalTask.get();
 
         // подготовка полей к обновлению, заполним их исходными значениями
         String newName = oldTask.getName();
@@ -245,19 +247,27 @@ public class Main {
 
 
     public static boolean deleteTaskById() {
-
         // выбрать задачу для удаления
-        Task task = askTaskIdFromUser();
-        if (task == null) {
+        Optional<Task> optionalTask = askTaskIdFromUser();
+
+        if (optionalTask.isEmpty()) {
             return false;
         }
 
-        return manager.deleteTask(task);
+        return manager.deleteTask(optionalTask.get());
+    }
+
+    public static Optional<Task> askTaskIdAndSaveToHistory() {
+        Optional<Task> optionalTask = askTaskIdFromUser();
+        if (optionalTask.isPresent()) {
+            Task task = optionalTask.get();
+            manager.saveTaskToHistory(task.getId());
+        }
+        return optionalTask;
     }
 
 
-    public static Task askTaskIdFromUser() {
-        Task task;
+    public static Optional<Task> askTaskIdFromUser() {
 
         System.out.print("Введите id задачи: ");
         String input = scanner.nextLine().trim();
@@ -268,12 +278,12 @@ public class Main {
         }
 
         int id = Integer.parseInt(input);
-        task = manager.getTaskById(id);
+        Optional<Task> optionalTask = manager.getTaskById(id);
 
-        if (task == null) {
+        if (optionalTask.isEmpty()) {
             System.out.println("Задача " + id + " не найдена. Проверьте список задач.");
         }
-        return task;
+        return optionalTask;
     }
 
     public static String askTaskNameFromUser() {
@@ -303,8 +313,12 @@ public class Main {
         }
 
         int id = Integer.parseInt(input);
-        Task parentTask = manager.getTaskById(id);
-
+        Optional<Task> optionalTask = manager.getTaskById(id);
+        if (optionalTask.isEmpty()) {
+            System.out.println("Задача " + id + " не найдена. Проверьте список задач.");
+            return null;
+        }
+        Task parentTask = optionalTask.get();
         if (!(parentTask instanceof Epic)) {
             System.out.println("Родительская задача " + id + " не найдена. Проверьте список задач с типом EPIC");
             return null;
@@ -346,5 +360,8 @@ public class Main {
     public static boolean isPositiveInteger(String input) {
         return !input.isEmpty() && input.matches("[1-9]\\d*");
     }
-
 }
+
+
+
+

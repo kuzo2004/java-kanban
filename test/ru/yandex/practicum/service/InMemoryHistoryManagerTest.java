@@ -14,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InMemoryHistoryManagerTest {
 
     private InMemoryTaskManager taskManager;
+    private Task task1;
+    private Task task2;
+    private Task task3;
 
     @BeforeEach
     public void beforeEach() {
@@ -21,58 +24,119 @@ class InMemoryHistoryManagerTest {
         taskManager.clearCounterForId();
     }
 
+    // предварительные действия, но не для всех тестов
+    public void addThreeTasksAndSaveToHistory() {
+        task1 = new Task("Task 1", "Description 1");
+        task2 = new Task("Task 2", "Description 2");
+        task3 = new Task("Task 3", "Description 3");
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+        taskManager.addTask(task3);
+
+        // задача попадает в историю, только если мы вызываем метод saveTaskToHistory()
+        taskManager.saveTaskToHistory(task1.getId());
+        taskManager.saveTaskToHistory(task2.getId());
+        taskManager.saveTaskToHistory(task3.getId());
+    }
 
     @Test
-    void testHistoryPreservesPreviousVersionOfTask() {
+    void testAddTaskToHistoryByOrder() {
+        addThreeTasksAndSaveToHistory();
+
+        List<Task> history = taskManager.getHistory();
+        assertEquals(3, history.size());
+        assertEquals(task1, history.get(0));
+        assertEquals(task2, history.get(1));
+        assertEquals(task3, history.get(2));
+    }
+
+    @Test
+    void testRemoveTaskFromHistory() {
+        addThreeTasksAndSaveToHistory();
+
+        taskManager.deleteTask(task2);
+
+        List<Task> history = taskManager.getHistory();
+        assertEquals(2, history.size());
+        assertEquals(task1, history.get(0));
+        assertEquals(task3, history.get(1));
+    }
+
+    @Test
+    void testRemoveHeadFromHistory() {
+        addThreeTasksAndSaveToHistory();
+
+        taskManager.deleteTask(task1);
+
+        List<Task> history = taskManager.getHistory();
+        assertEquals(2, history.size());
+        assertEquals(task2, history.get(0));
+        assertEquals(task3, history.get(1));
+    }
+
+    @Test
+    void testRemoveTailFromHistory() {
+        addThreeTasksAndSaveToHistory();
+
+        taskManager.deleteTask(task3);
+
+        List<Task> history = taskManager.getHistory();
+        assertEquals(2, history.size());
+        assertEquals(task1, history.get(0));
+        assertEquals(task2, history.get(1));
+    }
+
+    @Test
+    void testClearHistoryWhenClearAllTasks() {
+        addThreeTasksAndSaveToHistory();
+
+        taskManager.clearAllTasks();
+
+        assertTrue(taskManager.getHistory().isEmpty());
+    }
+
+    @Test
+    void testGetEmptyHistory() {
+        assertTrue(taskManager.getHistory().isEmpty());
+    }
+
+    @Test
+    void testSaveTaskHistoryWithoutDuplicates() {
 
         // Создаем задачу
-        Task task = new Task("Task 1", "Description");
-        taskManager.addTask(task);
-        taskManager.getTaskById(task.getId());
+        Task createdTask = new Task("Task 1", "Description");
+        int id = createdTask.getId();
+        taskManager.addTask(createdTask);
+        // сохраняем в историю
+        taskManager.saveTaskToHistory(id);
+
         // Обновляем статус этой же задачи
-        taskManager.updateTask(TaskType.TASK, 1, "Task 1", "Description", Status.IN_PROGRESS);
-        taskManager.getTaskById(task.getId());
+        Task updatedtask = taskManager.updateTask(TaskType.TASK, id, "Task 1",
+                "Description", Status.IN_PROGRESS);
+        // сохраняем в историю обновленную задачу
+        taskManager.saveTaskToHistory(updatedtask.getId());
 
         //Количество задач в taskManager должно остаться 1, так как задачу просто обновили
         int taskSize = taskManager.getAllTasks().size();
         assertEquals(1, taskSize, "Количество задач в taskManager должно остаться 1");
 
-        //Количество задач в history должно остаться 2, так как в историю запоминаем текущий слепок задачи
+        //Количество задач в history должно остаться 1, так как в истории нет дубликатов
         int actualHistorySize = taskManager.getHistory().size();
-        assertEquals(2, actualHistorySize, "Количество задач в history должно остаться 2");
+        assertEquals(1, actualHistorySize, "Количество задач в history должно остаться 1");
 
-        // Задачи в historyList
-        Task firstTask = taskManager.getHistory().get(0);
-        Task secondTask = taskManager.getHistory().get(1);
+        // Задача из historyList
+        Task histiryTask = taskManager.getHistory().getLast();
+
 
         // Проверяем по id
-        assertEquals(firstTask.getId(), secondTask.getId(), "Задачи должны быть равны по id");
+        assertEquals(createdTask.getId(), updatedtask.getId(),
+                "Задачи созданная и обновленная должны иметь прежний id");
+        assertEquals(updatedtask.getId(), histiryTask.getId(),
+                "Задачи обновленная и сохраненная в историю должны иметь одинаковый id");
         // Проверяем по статусу
-        assertNotEquals(firstTask.getStatus(), secondTask.getStatus(), "Задачи должны отличаться по статусу");
-    }
-
-    @Test
-    public void testHistorySizeLimit() {
-
-        // Добавляем 11 задач в историю
-        for (int i = 1; i <= 11; i++) {
-            Task task = new Task("Task " + i, "Description " + i);
-            taskManager.addTask(task);
-            taskManager.getTaskById(task.getId());  // неявное заполнение истории
-        }
-
-        // Получаем историю
-        List<Task> history = taskManager.getHistory();
-
-        // Проверяем, что размер истории не превышает 10
-        assertEquals(10, history.size(), "История должна содержать не более 10 задач");
-
-        // Проверяем, что первая добавленная задача удалена из истории
-        assertNotEquals("Task 1", history.getFirst().getName(),
-                "Первая задача должна быть удалена из истории");
-
-        // Проверяем, что последняя добавленная задача находится в истории
-        assertEquals("Task 11", history.getLast().getName(), "Последняя задача должна быть в истории");
-
+        assertNotEquals(createdTask.getStatus(), histiryTask.getStatus(),
+                "Задача созданная и обновленная должны отличаться по статусу");
+        assertEquals(updatedtask.getStatus(), histiryTask.getStatus(),
+                "Задачи обновленная и сохраненная в историю должны быть равны по статусу");
     }
 }

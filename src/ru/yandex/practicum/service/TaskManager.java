@@ -18,7 +18,9 @@ public interface TaskManager {
 
     void clearTasksByType(TaskType taskType);
 
-    Task getTaskById(int id);
+    Optional<Task> getTaskById(int id);
+
+    void saveTaskToHistory(int id);
 
     Task createTask(TaskType taskType, String name, String description, Epic parentEpic);
 

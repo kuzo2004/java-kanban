@@ -17,6 +17,5 @@ class MainTest {
         assertFalse(Main.isPositiveInteger("0"), "Строка '0' не должна быть положительным числом");
         assertFalse(Main.isPositiveInteger("-73"), "Строка '-73' не должна быть положительным числом");
         assertFalse(Main.isPositiveInteger(" 35 "), "Строка с пробелами не должна быть положительным числом");
-
     }
 }

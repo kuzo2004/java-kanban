@@ -30,10 +30,21 @@ public class Task {
         this.status = status;
     }
 
+    // Конструктор копирования
+    public Task(Task other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.description = other.description;
+        this.status = other.status;
+    }
+
+    public Task copy() {
+        return new Task(this);
+    }
+
     public int generateId() {
         return ++counter;
     }
-
 
     //при необходимости переопределяется в наследниках
     public boolean checkBeforeDelete() {
@@ -94,3 +105,4 @@ public class Task {
                 '}';
     }
 }
+

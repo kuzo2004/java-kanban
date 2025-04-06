@@ -20,6 +20,15 @@ public class Epic extends Task {
         recountStatus();
     }
 
+    // конструктор копирования
+    public Epic(Epic other) {
+        super(other);
+        this.subtasks = other.subtasks;
+    }
+
+    public Epic copy() {
+        return new Epic(this);
+    }
 
     public void removeNonSubtaskItems() {
         for (Task task : subtasks.values()) {
@@ -28,7 +37,6 @@ public class Epic extends Task {
             }
         }
     }
-
 
     public void addSubtask(Subtask subtask) {
         subtasks.put(subtask.getId(), subtask);
@@ -87,3 +95,4 @@ public class Epic extends Task {
                 '}';
     }
 }
+
