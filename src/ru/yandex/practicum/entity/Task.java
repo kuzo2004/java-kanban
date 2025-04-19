@@ -46,15 +46,6 @@ public class Task {
         return ++counter;
     }
 
-    //при необходимости переопределяется в наследниках
-    public boolean checkBeforeDelete() {
-        return true;
-    }
-
-    //при необходимости переопределяется в наследниках
-    public void doBeforeDelete() {
-    }
-
     public int getId() {
         return id;
     }

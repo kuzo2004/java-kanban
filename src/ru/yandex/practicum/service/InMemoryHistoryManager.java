@@ -45,36 +45,43 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
+
         if (!tasksHistoryMap.containsKey(id)) {
             return;
         }
-
         Node oldNode = tasksHistoryMap.remove(id);
+        removeNode(oldNode);
+    }
 
-        // Если был единственный узел
-        if (tasksHistoryMap.isEmpty()) {
-            head = tail = null;
+    private void removeNode(Node node) {
+        if (node == null) {
             return;
         }
 
-        Node nextNode = oldNode.next;
-        Node prevNode = oldNode.prev;
-
-        if (oldNode == head) {
-            head = nextNode;
+        // Если был единственный узел
+        if (head == node && tail == node) {
+            head = tail = null;
+        }
+        // Если удаляем голову
+        else if (node == head) {
+            head = node.next;
             head.prev = null;
-        } else if (oldNode == tail) {
-            tail = prevNode;
+        }
+        // Если удаляем хвост
+        else if (node == tail) {
+            tail = node.prev;
             tail.next = null;
-        } else {
-            prevNode.next = nextNode;
-            nextNode.prev = prevNode;
+        }
+        // Если удаляем узел из середины
+        else {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
         }
 
-        // Обнуляем ссылки удаляемого узла, помогаем сборщику мусора
-        oldNode.prev = null;
-        oldNode.next = null;
-        oldNode.task = null;
+        // Обнуляем ссылки удаляемого узла (помогаем сборщику мусора)
+        node.prev = null;
+        node.next = null;
+        node.task = null;
     }
 
     @Override

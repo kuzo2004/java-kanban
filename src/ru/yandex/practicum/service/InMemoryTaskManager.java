@@ -80,18 +80,16 @@ public class InMemoryTaskManager implements TaskManager {
         // stream API будет проще, но пока не проходили эту тему, так написала
         Class<? extends Task> taskClass = taskType.getTaskClass();
 
-        Iterator<Map.Entry<Integer, Task>> iterator = tasks.entrySet().iterator();
-
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Task> entry = iterator.next();
-            if (entry.getValue().getClass() == taskClass &&
-                    entry.getValue().checkBeforeDelete()) {
-                System.out.println("Удаление " + entry.getValue());
-                entry.getValue().doBeforeDelete();
-                historyManager.remove(entry.getKey());
-                iterator.remove();
-
+        // подготовили список для удаления
+        List<Task> tasksToDelete = new ArrayList<>();
+        for (Task task : tasks.values()) {
+            if (task.getClass() == taskClass) {
+                tasksToDelete.add(task);
             }
+        }
+        // собственно удаление
+        for (Task task : tasksToDelete) {
+            deleteTask(task);
         }
         System.out.println("Удалено задач " + (tasksSizeBefore - tasks.size()) + " шт.");
     }
@@ -128,15 +126,28 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean deleteTask(Task task) {
-        if (!task.checkBeforeDelete()) {
-            return false;
+
+        if (task == null) return false;
+
+        if (task instanceof Subtask subtask) {
+            // Если это подзадача, сначала удаляем ссылку из эпика
+            Epic epic = subtask.getParentEpic();
+            epic.deleteSubtask(subtask);
+        } else if (task instanceof Epic epic) {
+            // Если это эпик, сначала удаляем все его подзадачи
+            for (Task subtask : epic.getSubtasks().values()) {
+                historyManager.remove(subtask.getId());
+                tasks.remove(subtask.getId());
+            }
+            epic.getSubtasks().clear();
         }
 
-        task.doBeforeDelete();
+        // Удаляем саму задачу
         historyManager.remove(task.getId());
         tasks.remove(task.getId());
         return true;
     }
+
 
     @Override
     public Optional<Map<Integer, Task>> getSubtasksByEpic(Epic epic) {

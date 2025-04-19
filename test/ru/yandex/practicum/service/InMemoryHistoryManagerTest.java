@@ -2,11 +2,14 @@ package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.entity.Epic;
 import ru.yandex.practicum.entity.Status;
 import ru.yandex.practicum.entity.Task;
+import ru.yandex.practicum.entity.Subtask;
 import ru.yandex.practicum.entity.TaskType;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +28,7 @@ class InMemoryHistoryManagerTest {
     }
 
     // предварительные действия, но не для всех тестов
-    public void addThreeTasksAndSaveToHistory() {
+    private void addThreeTasksAndSaveToHistory() {
         task1 = new Task("Task 1", "Description 1");
         task2 = new Task("Task 2", "Description 2");
         task3 = new Task("Task 3", "Description 3");
@@ -138,5 +141,38 @@ class InMemoryHistoryManagerTest {
                 "Задача созданная и обновленная должны отличаться по статусу");
         assertEquals(updatedtask.getStatus(), histiryTask.getStatus(),
                 "Задачи обновленная и сохраненная в историю должны быть равны по статусу");
+    }
+
+    @Test
+    void testSubtasksRemovedFromHistoryWhenEpicDeleted() {
+        // Создаем эпик и подзадачи
+        Epic epic = new Epic("Epic 1", "Description");
+        taskManager.addTask(epic);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", epic);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", epic);
+        taskManager.addTask(subtask1);
+        taskManager.addTask(subtask2);
+
+        // Добавляем в историю эпик и подзадачи
+        taskManager.saveTaskToHistory(epic.getId());
+        taskManager.saveTaskToHistory(subtask1.getId());
+        taskManager.saveTaskToHistory(subtask2.getId());
+
+        // Проверяем, что все три задачи в истории
+        List<Task> historyBefore = taskManager.getHistory();
+        assertEquals(3, historyBefore.size(), "В истории должны быть эпик и две подзадачи");
+
+        // Удаляем эпик
+        taskManager.deleteTask(epic);
+
+        // Проверяем, что в истории ничего не осталось (эпик и его подзадачи удалены)
+        List<Task> historyAfter = taskManager.getHistory();
+        assertTrue(historyAfter.isEmpty(), "История должна быть пустой после удаления эпика");
+
+        //Количество задач в taskManager должно остаться 0, так как эпик удаляется с подзадачами
+        Map<Integer, Task> tasksAfter = taskManager.getAllTasks();
+        assertTrue(tasksAfter.isEmpty(), "Количество задач в taskManager должно остаться ноль");
+
     }
 }

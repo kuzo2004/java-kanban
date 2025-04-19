@@ -78,16 +78,6 @@ public class Epic extends Task {
     }
 
     @Override
-    public boolean checkBeforeDelete() {
-        if (subtasks.isEmpty()) {
-            return true;
-        } else {
-            System.out.println("Нельзя удалить задачу " + this.getId() + " так как ее список подзадач не пуст.");
-            return false;
-        }
-    }
-
-    @Override
     public String toString() {
         return super.toString() +
                 " subtasks= {" +
@@ -95,4 +85,5 @@ public class Epic extends Task {
                 '}';
     }
 }
+
 

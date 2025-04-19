@@ -17,24 +17,21 @@ public class Main {
     public static void main(String[] args) {
 
         // тестовые данные
-        Epic task0 = new Epic("Переезд", "");
-        Subtask task1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", task0);
-        Subtask task2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", task0);
-        Task task3 = new Task("Включить чайник", "вскипятить 1.5 литра воды");
-        Task task4 = new Task("Заварить чай", "зеленый китайский");
-        Epic task5 = new Epic("Сделать проект", "прогноз рынка гаджетов");
-        Subtask task6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", task5);
-        manager.addTask(task0);
-        manager.addTask(task1);
-        manager.addTask(task2);
-        manager.addTask(task3);
-        manager.addTask(task4);
-        manager.addTask(task5);
-        manager.addTask(task6);
+        Epic tTask0 = new Epic("Переезд", "");
+        Subtask tTask1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", tTask0);
+        Subtask tTask2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", tTask0);
+        Task tTask3 = new Task("Включить чайник", "вскипятить 1.5 литра воды");
+        Task tTask4 = new Task("Заварить чай", "зеленый китайский");
+        Epic tTask5 = new Epic("Сделать проект", "прогноз рынка гаджетов");
+        Subtask tTask6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", tTask5);
+        manager.addTask(tTask0);
+        manager.addTask(tTask1);
+        manager.addTask(tTask2);
+        manager.addTask(tTask3);
+        manager.addTask(tTask4);
+        manager.addTask(tTask5);
+        manager.addTask(tTask6);
 
-
-        Map<Integer, Task> allTasks;
-        Task task;
 
         // основной диалог с пользователем
         while (true) {
@@ -43,30 +40,31 @@ public class Main {
             String command = scanner.nextLine().trim();
             switch (command) {
                 case "1": // Получение списка задач по типу
-                    allTasks = getTasksByType();
-                    printTasks(allTasks);
+                    Map<Integer, Task> allTasks1 = getTasksByType();
+                    printTasks(allTasks1);
                     break;
                 case "2": // Удаление задач по типу
                     clearTasksByType();
                     break;
                 case "3": // Получение задачи по идентификатору и запись задачи в историю
-                    Optional<Task> optionalTask = askTaskIdAndSaveToHistory();
+                    Optional<Task> optionalTask = getTaskIdAndSaveToHistory();
                     if (optionalTask.isPresent()) {
-                        System.out.println("Найдена задача: " + optionalTask);
+                        Task task3 = optionalTask.get();
+                        System.out.println("Найдена задача: " + task3);
                     }
                     break;
                 case "4": // Создание новой задачи
-                    task = prepareAndCreateTask();
-                    if (task != null) {
-                        System.out.println("Создана задача: " + task);
+                    Task task4 = prepareAndCreateTask();
+                    if (task4 != null) {
+                        System.out.println("Создана задача: " + task4);
                     } else {
                         System.out.println("Задача не создана.");
                     }
                     break;
                 case "5": // Обновление задачи по идентификатору
-                    task = prepareAndUpdateTask();
-                    if (task != null) {
-                        System.out.println("Обновлена задача: " + task);
+                    Task task5 = prepareAndUpdateTask();
+                    if (task5 != null) {
+                        System.out.println("Обновлена задача: " + task5);
                     }
                     break;
                 case "6": // Удаление задачи по идентификатору
@@ -78,14 +76,13 @@ public class Main {
                     Epic parentTask = askParentTaskFromUser();
 
                     if (parentTask != null) {
+                        System.out.println("Выбранная задача \n" + parentTask);
                         Optional<Map<Integer, Task>> subtasksOptional = manager.getSubtasksByEpic(parentTask);
 
                         if (subtasksOptional.isPresent()) {
-                            allTasks = subtasksOptional.get();
-                            System.out.println("Задача " + parentTask.getId() + " содержит подзадачи: ");
-                            printTasks(allTasks);
-                        } else {
-                            System.out.println("Задача " + parentTask.getId() + " не содержит подзадач.");
+                            Map<Integer, Task> allTasks7 = subtasksOptional.get();
+                            System.out.println("содержит подзадачи");
+                            printTasks(allTasks7);
                         }
                     }
                     break;
@@ -147,6 +144,14 @@ public class Main {
         }
         // тип задачи
         TaskType taskType = askTaskTypeFromUser();
+        if (taskType == TaskType.EPIC) {
+            System.out.println("Задачи с типом EPIC будут удалены вместе с подзадачами. Подтвердить удаление да(1)/нет(0).");
+            String input = scanner.nextLine().trim();
+            if (input.equals("0")) {
+                System.out.println("Отмена операции удаления.");
+                return;
+            }
+        }
         manager.clearTasksByType(taskType);
     }
 
@@ -253,11 +258,19 @@ public class Main {
         if (optionalTask.isEmpty()) {
             return false;
         }
-
-        return manager.deleteTask(optionalTask.get());
+        Task task = optionalTask.get();
+        if (task instanceof Epic) {
+            System.out.println("Задача будет удалена вместе в подзадачами. Подтвердить да(1)/нет(0).");
+            String input = scanner.nextLine().trim();
+            if (input.equals("0")) {
+                System.out.println("Отмена операции удаления.");
+                return false;
+            }
+        }
+        return manager.deleteTask(task);
     }
 
-    public static Optional<Task> askTaskIdAndSaveToHistory() {
+    public static Optional<Task> getTaskIdAndSaveToHistory() {
         Optional<Task> optionalTask = askTaskIdFromUser();
         if (optionalTask.isPresent()) {
             Task task = optionalTask.get();
@@ -293,9 +306,7 @@ public class Main {
             System.out.print("Введите имя задачи: ");
             name = scanner.nextLine().trim();
         }
-
         return name;
-
     }
 
     public static String askTaskDescriptionFromUser() {

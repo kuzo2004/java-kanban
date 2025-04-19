@@ -35,11 +35,6 @@ public class Subtask extends Task {
         return new Subtask(this);
     }
 
-    @Override
-    public void doBeforeDelete() {
-        // Удалить эту подзадачу из списка подзадач. Этот список хранится у родителя(Epic).
-        parentEpic.deleteSubtask(this);
-    }
 
     public Epic getParentEpic() {
         return parentEpic;
