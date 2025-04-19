@@ -58,22 +58,20 @@ public class InMemoryHistoryManager implements HistoryManager {
             return;
         }
 
-        // Если был единственный узел
+
         if (head == node && tail == node) {
+            // Если был единственный узел
             head = tail = null;
-        }
-        // Если удаляем голову
-        else if (node == head) {
+        } else if (node == head) {
+            // Если удаляем голову
             head = node.next;
             head.prev = null;
-        }
-        // Если удаляем хвост
-        else if (node == tail) {
+        } else if (node == tail) {
+            // Если удаляем хвост
             tail = node.prev;
             tail.next = null;
-        }
-        // Если удаляем узел из середины
-        else {
+        } else {
+            // Если удаляем узел из середины
             node.prev.next = node.next;
             node.next.prev = node.prev;
         }
