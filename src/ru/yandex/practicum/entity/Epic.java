@@ -20,6 +20,15 @@ public class Epic extends Task {
         recountStatus();
     }
 
+    // конструктор копирования
+    public Epic(Epic other) {
+        super(other);
+        this.subtasks = other.subtasks;
+    }
+
+    public Epic copy() {
+        return new Epic(this);
+    }
 
     public void removeNonSubtaskItems() {
         for (Task task : subtasks.values()) {
@@ -28,7 +37,6 @@ public class Epic extends Task {
             }
         }
     }
-
 
     public void addSubtask(Subtask subtask) {
         subtasks.put(subtask.getId(), subtask);
@@ -70,16 +78,6 @@ public class Epic extends Task {
     }
 
     @Override
-    public boolean checkBeforeDelete() {
-        if (subtasks.isEmpty()) {
-            return true;
-        } else {
-            System.out.println("Нельзя удалить задачу " + this.getId() + " так как ее список подзадач не пуст.");
-            return false;
-        }
-    }
-
-    @Override
     public String toString() {
         return super.toString() +
                 " subtasks= {" +
@@ -87,3 +85,5 @@ public class Epic extends Task {
                 '}';
     }
 }
+
+

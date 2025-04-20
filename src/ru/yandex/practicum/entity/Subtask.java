@@ -11,7 +11,7 @@ public class Subtask extends Task {
         this.parentEpic.addSubtask(this);
     }
 
-    public Subtask(int uniqueID, String name, String description, Status status, Epic parentEpic) {// при обновлении
+    public Subtask(int uniqueID, String name, String description, Status status, Epic parentEpic) {
         super(uniqueID, name, description, status);
         this.parentEpic = parentEpic;
         this.parentEpic.addSubtask(this);
@@ -25,11 +25,16 @@ public class Subtask extends Task {
         }
     }
 
-    @Override
-    public void doBeforeDelete() {
-        // Удалить эту подзадачу из списка подзадач. Этот список хранится у родителя(Epic).
-        parentEpic.deleteSubtask(this);
+    // конструктор копирования
+    public Subtask(Subtask other) {
+        super(other);
+        this.parentEpic = other.parentEpic.copy();
     }
+
+    public Subtask copy() {
+        return new Subtask(this);
+    }
+
 
     public Epic getParentEpic() {
         return parentEpic;
@@ -42,3 +47,4 @@ public class Subtask extends Task {
                 '}';
     }
 }
+

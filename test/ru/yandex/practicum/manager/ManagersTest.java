@@ -9,6 +9,7 @@ import ru.yandex.practicum.service.InMemoryTaskManager;
 import ru.yandex.practicum.service.TaskManager;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,11 +26,12 @@ class ManagersTest {
 
 
         // проверка готовности к работе taskManager
-        // cоздаем задачу и добавляем ее в менеджер
+        // создаем задачу и добавляем ее в менеджер
         Task task = taskManager.createTask(TaskType.TASK, "Task 1", "Description", null);
         // проверяем, что задача добавлена
-        Task actualTask = taskManager.getTaskById(task.getId());
-        assertNotNull(actualTask, "Задача должна быть найдена");
+        Optional<Task> optionalTask = taskManager.getTaskById(task.getId());
+        assertTrue(optionalTask.isPresent(), "Задача должна быть найдена");
+        assertEquals(task, optionalTask.get(), "Задачи должны совпадать");
     }
 
     @Test
@@ -48,8 +50,9 @@ class ManagersTest {
 
         // поиск задачи по id - автоматически заполняет список истории просмотренных задач
         taskManager.getTaskById(task.getId());
+        taskManager.getHistoryManager().add(task);
         final List<Task> history = historyManager.getHistory();
-        assertNotNull(history, "История не пустая.");
+        assertFalse(history.isEmpty(), "История не пустая.");
         assertEquals(1, history.size(), "История не пустая.");
     }
 }
