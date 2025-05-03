@@ -35,6 +35,4 @@ public interface TaskManager {
     HistoryManager getHistoryManager();
 
     void clearCounterForId();
-
-
 }

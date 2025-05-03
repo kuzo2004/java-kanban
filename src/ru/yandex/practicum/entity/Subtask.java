@@ -1,5 +1,7 @@
 package ru.yandex.practicum.entity;
 
+import ru.yandex.practicum.exceptions.WrongParentEpicException;
+
 public class Subtask extends Task {
 
     private Epic parentEpic;
@@ -11,17 +13,13 @@ public class Subtask extends Task {
         this.parentEpic.addSubtask(this);
     }
 
-    public Subtask(int uniqueID, String name, String description, Status status, Epic parentEpic) {
-        super(uniqueID, name, description, status);
-        this.parentEpic = parentEpic;
-        this.parentEpic.addSubtask(this);
-    }
-
-    public Subtask(int uniqueID, String name, String description, Status status, Task parentEpic) {
-        super(uniqueID, name, description, status);
+    public Subtask(int id, String name, String description, Status status, Task parentEpic) {
+        super(id, name, description, status);
         if (parentEpic instanceof Epic) {
             this.parentEpic = (Epic) parentEpic;
             this.parentEpic.addSubtask(this);
+        } else {
+            throw new WrongParentEpicException("Родительской задачи " + parentEpic.getId() + " не существует.");
         }
     }
 
@@ -45,6 +43,12 @@ public class Subtask extends Task {
         return super.toString() +
                 " parentEpic= " + (parentEpic != null ? parentEpic.getId() : "null") +
                 '}';
+    }
+
+    @Override
+    public String writeToString() {
+        return super.writeToString() +
+                (parentEpic != null ? parentEpic.getId() : " ") + ",";
     }
 }
 

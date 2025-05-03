@@ -6,15 +6,22 @@ import java.util.Map;
 
 public class Epic extends Task {
 
-    protected Map<Integer, Task> subtasks = new HashMap<>();
+    protected Map<Integer, Task> subtasks;
 
 
     public Epic(String name, String description) {
         super(name, description);
+        subtasks = new HashMap<>();
     }
 
-    public Epic(int uniqueID, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
-        super(uniqueID, name, description);
+    public Epic(int id, String name, String description) { //запись из файла
+        super(id, name, description);
+        subtasks = new HashMap<>();
+        recountStatus();
+    }
+
+    public Epic(int id, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
+        super(id, name, description);
         this.subtasks = subtasks;
         removeNonSubtaskItems();
         recountStatus();
@@ -31,6 +38,7 @@ public class Epic extends Task {
     }
 
     public void removeNonSubtaskItems() {
+
         for (Task task : subtasks.values()) {
             if (!(task instanceof Subtask)) {
                 subtasks.remove(task.getId());
@@ -64,6 +72,10 @@ public class Epic extends Task {
     }
 
     public void recountStatus() {
+        if (subtasks.isEmpty()) {
+            status = Status.NEW;
+            return;
+        }
         boolean hasNew = false;
         for (Task subtask : subtasks.values()) {
             Status subtaskStatus = subtask.getStatus();

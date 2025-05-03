@@ -95,5 +95,13 @@ public class Task {
                 ", status=" + status +
                 '}';
     }
+
+    public String writeToString() {
+        return id + "," +
+                this.getClass().getSimpleName() + "," +
+                name + "," +
+                status + "," +
+                (description.isBlank() ? " " : description) + ",";
+    }
 }
 
