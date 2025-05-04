@@ -41,8 +41,7 @@ public class Subtask extends Task {
     @Override
     public String toString() {
         return super.toString() +
-                " parentEpic= " + (parentEpic != null ? parentEpic.getId() : "null") +
-                '}';
+                " parentEpic= {" + (parentEpic != null ? parentEpic.getId() : "null") + '}';
     }
 
     @Override

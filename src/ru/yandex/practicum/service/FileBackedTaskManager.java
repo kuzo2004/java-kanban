@@ -5,6 +5,7 @@ import ru.yandex.practicum.exceptions.ManagerSaveException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +16,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     public FileBackedTaskManager(Path path) {
         super();
         this.path = path;
-        loadFromFile(path);
     }
 
     @Override
@@ -49,8 +49,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
-    public void loadFromFile(Path path) {
-        int sizeBeforeLoad = tasks.size();
+    public static FileBackedTaskManager loadFromFile(File file) {
+        FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
+        manager.load();
+        return manager;
+    }
+
+    private void load() {
         try (BufferedReader br = Files.newBufferedReader(path)) {
             br.readLine(); // пропуск 1 строки
             String line;
@@ -63,8 +68,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         } catch (IOException e) {
             throw new RuntimeException("Не удалось прочитать файл " + path, e);
         }
-        int numberLoaded = tasks.size() - sizeBeforeLoad;
-        System.out.println("Загружено " + numberLoaded + " задач.");
     }
 
     public void createTaskFromCsvLine(String value) {

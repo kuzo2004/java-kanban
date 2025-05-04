@@ -1,6 +1,0 @@
-id,type,name,status,description,epic
-4,Task,Включить чайник,NEW,вскипятить 1.5 литра воды,
-5,Task,Заварить чай,NEW,зеленый китайский,
-8,Task,22,NEW,22,
-11,Epic,33,NEW,33,
-12,Subtask,1111,NEW,111,11,

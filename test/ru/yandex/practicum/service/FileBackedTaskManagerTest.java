@@ -68,7 +68,7 @@ class FileBackedTaskManagerTest {
     public void shouldLoadTasksFromFile() throws IOException {
         // Загружаем  файл c 3-мя задачами
         testFile = createTestFile();
-        manager = new FileBackedTaskManager(testFile);
+        manager = FileBackedTaskManager.loadFromFile(testFile.toFile());
 
         assertEquals(3, manager.getAllTasks().size(), "Должны быть загружены 3 задачи");
         assertTrue(manager.getTaskById(1).isPresent(), "Эпик 1 должен существовать");
@@ -88,7 +88,7 @@ class FileBackedTaskManagerTest {
     void shouldLoadMultipleTasksFromFile() throws IOException {
         // Загружаем  файл c 3-мя задачами
         testFile = createTestFile();
-        manager = new FileBackedTaskManager(testFile);
+        manager = FileBackedTaskManager.loadFromFile(testFile.toFile());
 
         // Проверяем что количество задач в менеджере соответствует количеству строк в файле без учета заголовка
         int loadedCount = Files.readAllLines(testFile).size() - 1;
@@ -102,7 +102,7 @@ class FileBackedTaskManagerTest {
     void shouldLoadMultipleTasksAndDeleteSomeTask() throws IOException {
         // Загружаем  файл c 3-мя задачами
         testFile = createTestFile();
-        manager = new FileBackedTaskManager(testFile);
+        manager = FileBackedTaskManager.loadFromFile(testFile.toFile());
 
         assertEquals(3, manager.getAllTasks().size(), "Должны быть загружены 3 задачи");
 
@@ -122,7 +122,7 @@ class FileBackedTaskManagerTest {
     void shouldLoadMultipleTasksAndDeleteAllTask() throws IOException {
         // Загружаем  файл c 3-мя задачами
         testFile = createTestFile();
-        manager = new FileBackedTaskManager(testFile);
+        manager = FileBackedTaskManager.loadFromFile(testFile.toFile());
 
         assertEquals(3, manager.getAllTasks().size(), "Должны быть загружены 3 задачи");
         manager.clearAllTasks();
@@ -145,7 +145,7 @@ class FileBackedTaskManagerTest {
 
 
         assertThrows(RuntimeException.class,
-                () -> new FileBackedTaskManager(wrongTestFile),
+                () -> FileBackedTaskManager.loadFromFile(wrongTestFile.toFile()),
                 "Должно выбрасываться исключение при неверных данных"
         );
 
@@ -160,7 +160,7 @@ class FileBackedTaskManagerTest {
                 "1,SUBTASK,Subtask 1,NEW,Description 1" // нет родительской задачи
         ));
         assertThrows(RuntimeException.class,
-                () -> new FileBackedTaskManager(wrongTestFile),
+                () -> FileBackedTaskManager.loadFromFile(wrongTestFile.toFile()),
                 "Должно выбрасываться исключение при отсутствии эпика"
         );
         Files.deleteIfExists(wrongTestFile);
