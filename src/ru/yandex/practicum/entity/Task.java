@@ -88,12 +88,28 @@ public class Task {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "     {" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description.length='" + description.length() + '\'' +
-                ", status=" + status +
-                '}';
+        return
+                String.format("%-12s{", this.getClass().getSimpleName()) +
+
+                        "id=" + String.format("%-4s", (id + ",")) +
+
+                        " name= " + ((name.length() > 20) ?
+                        name.substring(0, 17) + "...," :
+                        String.format("%-21s", (name + ","))) +
+
+                        " description= " + ((description.length() > 20) ?
+                        description.substring(0, 17) + "...," :
+                        String.format("%-21s", (description + ","))) +
+
+                        " status= " + String.format("%-12s", (status + "}"));
+    }
+
+    public String writeToString() {
+        return id + "," +
+                this.getClass().getSimpleName() + "," +
+                name + "," +
+                status + "," +
+                (description.isBlank() ? " " : description) + ",";
     }
 }
 

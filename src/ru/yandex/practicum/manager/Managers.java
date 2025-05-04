@@ -1,16 +1,17 @@
 package ru.yandex.practicum.manager;
 
 
-import ru.yandex.practicum.service.HistoryManager;
-import ru.yandex.practicum.service.InMemoryHistoryManager;
-import ru.yandex.practicum.service.InMemoryTaskManager;
-import ru.yandex.practicum.service.TaskManager;
+import ru.yandex.practicum.service.*;
+
+import java.io.File;
 
 
 public class Managers {
 
+    private static final File DEFAULT_TASKS_FILE = new File("tasks.csv");
+
     public static TaskManager getDefault() {
-        return new InMemoryTaskManager();
+        return FileBackedTaskManager.loadFromFile(DEFAULT_TASKS_FILE);
     }
 
     public static HistoryManager getDefaultHistory() {

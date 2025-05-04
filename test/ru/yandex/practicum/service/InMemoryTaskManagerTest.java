@@ -98,7 +98,7 @@ class InMemoryTaskManagerTest {
 
         // Получаем задачу из менеджера
         Optional<Task> optionalActualTask = taskManager.getTaskById(task.getId());
-        assertTrue(optionalActualTask.isPresent(),"Задача с заданным id должна быть найдена");
+        assertTrue(optionalActualTask.isPresent(), "Задача с заданным id должна быть найдена");
         Task actualTask = optionalActualTask.get();
 
         // Проверяем, что все поля задачи остались неизменными

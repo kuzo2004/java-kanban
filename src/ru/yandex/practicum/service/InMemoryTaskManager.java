@@ -7,8 +7,8 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private Map<Integer, Task> tasks;
-    private HistoryManager historyManager;
+    protected Map<Integer, Task> tasks;
+    protected HistoryManager historyManager;
 
 
     public InMemoryTaskManager() {
@@ -96,7 +96,8 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public Task createTask(TaskType taskType, String name, String description, Epic parentEpic) {
+    public Task createTask(TaskType taskType, String name,
+                           String description, Epic parentEpic) {
 
         Task task = switch (taskType) {
             case TASK -> new Task(name, description);
@@ -104,31 +105,32 @@ public class InMemoryTaskManager implements TaskManager {
             case SUBTASK -> new Subtask(name, description, parentEpic);
         };
 
-        tasks.put(task.getId(), task);
+        addTask(task);
         return task;
     }
 
     @Override
-    public Task updateTask(TaskType taskType, int uniqueID, String name,
+    public Task updateTask(TaskType taskType, int id, String name,
                            String description, Status status) {
 
         Task task = switch (taskType) {
-            case TASK -> new Task(uniqueID, name, description, status);
-            case EPIC -> new Epic(uniqueID, name, description,
-                    ((Epic) tasks.get(uniqueID)).getSubtasks());
-            case SUBTASK -> new Subtask(uniqueID, name, description, status,
-                    ((Subtask) tasks.get(uniqueID)).getParentEpic());
+            case TASK -> new Task(id, name, description, status);
+            case EPIC -> new Epic(id, name, description,
+                    ((Epic) tasks.get(id)).getSubtasks());
+            case SUBTASK -> new Subtask(id, name, description, status,
+                    ((Subtask) tasks.get(id)).getParentEpic());
         };
 
-        tasks.put(task.getId(), task);
+        addTask(task);
         return task;
     }
 
     @Override
     public boolean deleteTask(Task task) {
 
-        if (task == null) return false;
-
+        if (task == null) {
+            return false;
+        }
         if (task instanceof Subtask subtask) {
             // Если это подзадача, сначала удаляем ссылку из эпика
             Epic epic = subtask.getParentEpic();

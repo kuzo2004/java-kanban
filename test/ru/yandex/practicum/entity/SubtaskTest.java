@@ -1,6 +1,7 @@
 package ru.yandex.practicum.entity;
 
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.exceptions.WrongParentEpicException;
 
 import java.util.HashMap;
 
@@ -24,16 +25,21 @@ class SubtaskTest {
     }
 
     @Test
-    public void testSubtaskCannotBeEpic() {
-
+    public void testSubtaskCannotBeParentForAnotherSubtask() {
+        // Подготовка тестовых данных
         Epic epic = new Epic(1, "Epic 1", "Description", new HashMap<>());
-        // Создаем подзадачу, связанную с эпиком
-        Subtask subtask1 = new Subtask(2, "Subtask 1", "Description", Status.NEW, epic);
+        Task subtask = new Subtask(2, "Subtask 1", "Description", Status.NEW, epic);
 
-        // Попытка создать другую подзадачу, используя subtask1 как родительский эпик
-        Subtask subtask2 = new Subtask(3, "Subtask 2", "Description", Status.NEW, subtask1);
+        // Проверка исключения с помощью assertThrows
+        WrongParentEpicException exception = assertThrows(
+                WrongParentEpicException.class,
+                () -> new Subtask(3, "Subtask 2", "Description", Status.NEW, subtask),
+                "Подзадача не должна принимать другую подзадачу в качестве родителя"
+        );
 
-        assertNull(subtask2.getParentEpic(), "Нельзя подзадачу назначить чьем-то эпиком.");
+        // Дополнительная проверка сообщения исключения
+        assertTrue(exception.getMessage().contains("Родительской задачи"),
+                "Сообщение исключения должно указывать на проблему с родительской задачей");
     }
 }
 

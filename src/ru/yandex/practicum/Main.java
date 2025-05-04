@@ -2,6 +2,7 @@ package ru.yandex.practicum;
 
 import ru.yandex.practicum.entity.*;
 import ru.yandex.practicum.manager.Managers;
+import ru.yandex.practicum.service.InMemoryTaskManager;
 import ru.yandex.practicum.service.TaskManager;
 
 import java.util.List;
@@ -16,23 +17,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // тестовые данные
-        Epic tTask0 = new Epic("Переезд", "");
-        Subtask tTask1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", tTask0);
-        Subtask tTask2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", tTask0);
-        Task tTask3 = new Task("Включить чайник", "вскипятить 1.5 литра воды");
-        Task tTask4 = new Task("Заварить чай", "зеленый китайский");
-        Epic tTask5 = new Epic("Сделать проект", "прогноз рынка гаджетов");
-        Subtask tTask6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", tTask5);
-        manager.addTask(tTask0);
-        manager.addTask(tTask1);
-        manager.addTask(tTask2);
-        manager.addTask(tTask3);
-        manager.addTask(tTask4);
-        manager.addTask(tTask5);
-        manager.addTask(tTask6);
-
-
+        if (manager instanceof InMemoryTaskManager) {
+            addTestTasks(); // заполним HashMap тестовыми задачами
+        }
         // основной диалог с пользователем
         while (true) {
             System.out.println();
@@ -103,8 +90,25 @@ public class Main {
                 default:
                     System.out.println("Нет такой команды. Введите число от 1 до 9");
             }
-
         }
+    }
+
+    private static void addTestTasks() {
+        // тестовые задачи
+        Epic tTask0 = new Epic("Переезд", "");
+        Subtask tTask1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", tTask0);
+        Subtask tTask2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", tTask0);
+        Task tTask3 = new Task("Включить чайник", "вскипятить 1.5 литра воды");
+        Task tTask4 = new Task("Заварить чай", "зеленый китайский");
+        Epic tTask5 = new Epic("Сделать проект", "прогноз рынка гаджетов");
+        Subtask tTask6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", tTask5);
+        manager.addTask(tTask0);
+        manager.addTask(tTask1);
+        manager.addTask(tTask2);
+        manager.addTask(tTask3);
+        manager.addTask(tTask4);
+        manager.addTask(tTask5);
+        manager.addTask(tTask6);
     }
 
 
