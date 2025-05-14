@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
     private Path path;
@@ -72,7 +74,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
     public void createTaskFromCsvLine(String value) {
         String[] fields = value.split(",");
-        if (fields.length < 5) {
+        if (fields.length < 7) {
             throw new RuntimeException("Недостаточно данных в строке: " + value);
         }
 
@@ -82,15 +84,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             String name = fields[2];
             Status status = Status.valueOf(fields[3]);
             String description = fields[4];
+            LocalDateTime startTime = LocalDateTime.parse(fields[5]);
+            Duration duration = Duration.parse(fields[6]);
 
             switch (type) {
-                case TASK, EPIC -> createExistingTask(id, type, name, description, status, null);
+                case TASK -> createExistingTask(id, type, name, description, status, null, startTime, duration);
+                case EPIC -> createExistingTask(id, type, name, description, status, null,null,null);
                 case SUBTASK -> {
-                    if (fields.length < 6) {
+                    if (fields.length < 8) {
                         throw new RuntimeException("Для подзадачи не указан эпик");
                     }
                     Epic parentEpic = (Epic) tasks.get(Integer.parseInt(fields[5]));
-                    createExistingTask(id, type, name, description, status, parentEpic);
+                    createExistingTask(id, type, name, description, status, parentEpic, startTime, duration);
                 }
             }
         } catch (IllegalArgumentException e) {
@@ -99,11 +104,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     public void createExistingTask(int id, TaskType taskType, String name,
-                                   String description, Status status, Epic parentEpic) {
+                                   String description, Status status, Epic parentEpic,
+                                   LocalDateTime startTime, Duration duration) {
         Task task = switch (taskType) {
-            case TASK -> new Task(id, name, description, status);
+            case TASK -> new Task(id, name, description, status, startTime, duration);
             case EPIC -> new Epic(id, name, description);
-            case SUBTASK -> new Subtask(id, name, description, status, parentEpic);
+            case SUBTASK -> new Subtask(id, name, description, status, parentEpic,startTime, duration);
         };
         super.addTask(task);
     }

@@ -1,7 +1,10 @@
 package ru.yandex.practicum.entity;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.time.Duration;
 
 
 public class Epic extends Task {
@@ -15,13 +18,13 @@ public class Epic extends Task {
     }
 
     public Epic(int id, String name, String description) { //запись из файла
-        super(id, name, description);
+        super(id, name, description, null, null);
         subtasks = new HashMap<>();
         recountStatus();
     }
 
     public Epic(int id, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
-        super(id, name, description);
+        super(id, name, description, null, null);
         this.subtasks = subtasks;
         removeNonSubtaskItems();
         recountStatus();
@@ -36,6 +39,39 @@ public class Epic extends Task {
     public Epic copy() {
         return new Epic(this);
     }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        if (subtasks.isEmpty()) {
+            return null;
+        }
+        return subtasks.values().stream()
+                .map(Task::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        if (subtasks.isEmpty()) {
+            return null;
+        }
+        return subtasks.values().stream()
+                .map(Task::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    @Override
+    public Duration getDuration() {
+        return subtasks.values().stream()
+                .map(Task::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
 
     public void removeNonSubtaskItems() {
 

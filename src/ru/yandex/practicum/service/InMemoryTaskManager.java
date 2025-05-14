@@ -3,6 +3,8 @@ package ru.yandex.practicum.service;
 import ru.yandex.practicum.entity.*;
 import ru.yandex.practicum.manager.Managers;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -97,12 +99,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task createTask(TaskType taskType, String name,
-                           String description, Epic parentEpic) {
+                           String description, Epic parentEpic, LocalDateTime startTime, Duration duration) {
 
         Task task = switch (taskType) {
-            case TASK -> new Task(name, description);
+            case TASK -> new Task(name, description, startTime, duration);
             case EPIC -> new Epic(name, description);
-            case SUBTASK -> new Subtask(name, description, parentEpic);
+            case SUBTASK -> new Subtask(name, description, parentEpic, startTime, duration);
         };
 
         addTask(task);
@@ -111,14 +113,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task updateTask(TaskType taskType, int id, String name,
-                           String description, Status status) {
+                           String description, Status status, LocalDateTime startTime, Duration duration) {
 
         Task task = switch (taskType) {
-            case TASK -> new Task(id, name, description, status);
+            case TASK -> new Task(id, name, description, status, startTime, duration);
             case EPIC -> new Epic(id, name, description,
                     ((Epic) tasks.get(id)).getSubtasks());
             case SUBTASK -> new Subtask(id, name, description, status,
-                    ((Subtask) tasks.get(id)).getParentEpic());
+                    ((Subtask) tasks.get(id)).getParentEpic(), startTime, duration);
         };
 
         addTask(task);
