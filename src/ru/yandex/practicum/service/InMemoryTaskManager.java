@@ -105,8 +105,8 @@ public class InMemoryTaskManager implements TaskManager {
             return Collections.emptyMap();
         }
 
-        return tasks.entrySet().stream().
-                filter(entry -> entry.getValue().getClass() == taskType.getTaskClass())
+        return tasks.entrySet().stream()
+                .filter(entry -> entry.getValue().getClass() == taskType.getTaskClass())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue
