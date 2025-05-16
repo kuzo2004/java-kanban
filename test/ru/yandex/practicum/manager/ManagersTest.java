@@ -2,12 +2,11 @@ package ru.yandex.practicum.manager;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.entity.Task;
-import ru.yandex.practicum.entity.TaskType;
-import ru.yandex.practicum.service.HistoryManager;
-import ru.yandex.practicum.service.InMemoryHistoryManager;
-import ru.yandex.practicum.service.InMemoryTaskManager;
-import ru.yandex.practicum.service.TaskManager;
+import ru.yandex.practicum.service.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,43 +15,51 @@ import static org.junit.jupiter.api.Assertions.*;
 class ManagersTest {
 
     @Test
-    public void testGetDefaultTaskManager() {
+    public void testGetDefaultTaskManager() throws IOException {
+        // Подменяем стандартный файл на временный
+        Path testFile = Files.createTempFile("test_tasks", ".csv");
 
-        // проверка инициализации taskManager
+        Managers.setDefaultTasksFile(testFile.toFile());
+
         TaskManager taskManager = Managers.getDefault();
+
         assertNotNull(taskManager, "Менеджер задач не должен быть null");
-        assertInstanceOf(InMemoryTaskManager.class, taskManager,
-                "Менеджер задач должен быть InMemoryTaskManager");
+        assertInstanceOf(FileBackedTaskManager.class, taskManager,
+                "Должен возвращаться FileBackedTaskManager");
 
+        // Проверка базовой функциональности
+        Task task = new Task("Test", "Description");
+        taskManager.addTask(task);
 
-        // проверка готовности к работе taskManager
-        // создаем задачу и добавляем ее в менеджер
-        Task task = taskManager.createTask(TaskType.TASK, "Task 1", "Description", null);
-        // проверяем, что задача добавлена
-        Optional<Task> optionalTask = taskManager.getTaskById(task.getId());
-        assertTrue(optionalTask.isPresent(), "Задача должна быть найдена");
-        assertEquals(task, optionalTask.get(), "Задачи должны совпадать");
+        Optional<Task> foundTask = taskManager.getTaskById(task.getId());
+        assertTrue(foundTask.isPresent(), "Задача должна быть найдена");
+        assertEquals(task.getName(), foundTask.get().getName(), "Имена задач должны совпадать");
+
+        Files.deleteIfExists(testFile);
     }
 
     @Test
-    public void testGetDefaultHistoryManager() {
-
-        // проверка инициализации historyManager
+    public void testGetDefaultHistoryManager() throws IOException {
+        Path testFile = Files.createTempFile("test_tasks", ".csv");
+        Managers.setDefaultTasksFile(testFile.toFile());
         TaskManager taskManager = Managers.getDefault();
         HistoryManager historyManager = taskManager.getHistoryManager();
+
+
         assertNotNull(historyManager, "Менеджер истории не должен быть null");
         assertInstanceOf(InMemoryHistoryManager.class, historyManager,
-                "Менеджер истории должен быть InMemoryHistoryManager");
+                "Должен возвращаться InMemoryHistoryManager");
+
+        // Проверка базовой функциональности
+        Task task = new Task("Test", "Description");
+        taskManager.addTask(task);
+        taskManager.saveTaskToHistory(task.getId());
+        List<Task> history = historyManager.getHistory();
 
 
-        // проверка готовности к работе historyManager
-        Task task = taskManager.createTask(TaskType.TASK, "Task 1", "Description", null);
+        assertEquals(1, history.size(), "История должна содержать 1 задачу");
+        assertEquals(task.getName(), history.get(0).getName(), "Имена задач должны совпадать");
 
-        // поиск задачи по id - автоматически заполняет список истории просмотренных задач
-        taskManager.getTaskById(task.getId());
-        taskManager.getHistoryManager().add(task);
-        final List<Task> history = historyManager.getHistory();
-        assertFalse(history.isEmpty(), "История не пустая.");
-        assertEquals(1, history.size(), "История не пустая.");
+        Files.deleteIfExists(testFile);
     }
 }

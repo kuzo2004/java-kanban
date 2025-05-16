@@ -2,9 +2,12 @@ package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.entity.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface TaskManager {
 
@@ -14,6 +17,8 @@ public interface TaskManager {
 
     Map<Integer, Task> getAllTasksByType(TaskType taskType);
 
+    Set<Task> getPrioritizedTasks();
+
     void clearAllTasks();
 
     void clearTasksByType(TaskType taskType);
@@ -22,9 +27,11 @@ public interface TaskManager {
 
     void saveTaskToHistory(int id);
 
-    Task createTask(TaskType taskType, String name, String description, Epic parentEpic);
+    Task createTask(TaskType taskType, String name, String description, Epic parentEpic,
+                    LocalDateTime startTime, Duration duration);
 
-    Task updateTask(TaskType taskType, int uniqueID, String name, String description, Status status);
+    Task updateTask(TaskType taskType, int uniqueID, String name, String description, Status status,
+                    LocalDateTime startTime, Duration duration);
 
     boolean deleteTask(Task task);
 

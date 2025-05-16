@@ -1,14 +1,17 @@
 package ru.yandex.practicum;
 
 import ru.yandex.practicum.entity.*;
+import ru.yandex.practicum.exceptions.TimeConflictException;
 import ru.yandex.practicum.manager.Managers;
-import ru.yandex.practicum.service.InMemoryTaskManager;
 import ru.yandex.practicum.service.TaskManager;
+import ru.yandex.practicum.service.validation.Validators;
+import ru.yandex.practicum.service.validation.Validators.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.stream.Stream;
 
 
 public class Main {
@@ -17,7 +20,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        if (manager instanceof InMemoryTaskManager) {
+        if (manager.getClass().getSimpleName().equals("InMemoryTaskManager")) {
             addTestTasks(); // заполним HashMap тестовыми задачами
         }
         // основной диалог с пользователем
@@ -27,31 +30,35 @@ public class Main {
             String command = scanner.nextLine().trim();
             switch (command) {
                 case "1": // Получение списка задач по типу
-                    Map<Integer, Task> allTasks1 = getTasksByType();
-                    printTasks(allTasks1);
+                    printTasks(getTasksByType());
                     break;
                 case "2": // Удаление задач по типу
                     clearTasksByType();
                     break;
                 case "3": // Получение задачи по идентификатору и запись задачи в историю
-                    Optional<Task> optionalTask = getTaskIdAndSaveToHistory();
-                    if (optionalTask.isPresent()) {
-                        Task task3 = optionalTask.get();
-                        System.out.println("Найдена задача: " + task3);
-                    }
+                    getTaskIdAndSaveToHistory()
+                            .ifPresentOrElse(
+                                    task -> System.out.println("Найдена задача: " + task),
+                                    () -> System.out.println("Задача не найдена")
+                            );
                     break;
                 case "4": // Создание новой задачи
-                    Task task4 = prepareAndCreateTask();
-                    if (task4 != null) {
-                        System.out.println("Создана задача: " + task4);
-                    } else {
-                        System.out.println("Задача не создана.");
+                    try {
+                        Optional.ofNullable(prepareAndCreateTask())
+                                .ifPresentOrElse(
+                                        task -> System.out.println("Создана задача: " + task),
+                                        () -> System.out.println("Задача не создана.")
+                                );
+                    } catch (TimeConflictException e) {
+                        System.out.println("Ошибка создания задачи: " + e.getMessage());
                     }
                     break;
                 case "5": // Обновление задачи по идентификатору
-                    Task task5 = prepareAndUpdateTask();
-                    if (task5 != null) {
-                        System.out.println("Обновлена задача: " + task5);
+                    try {
+                        Optional.ofNullable(prepareAndUpdateTask())
+                                .ifPresent(t -> System.out.println("Обновлена задача: " + t));
+                    } catch (TimeConflictException e) {
+                        System.out.println("Ошибка обновления задачи: " + e.getMessage());
                     }
                     break;
                 case "6": // Удаление задачи по идентификатору
@@ -61,30 +68,34 @@ public class Main {
                     break;
                 case "7": // Получение списка всех подзадач определённого эпика
                     Epic parentTask = askParentTaskFromUser();
+                    if (parentTask == null) break;
 
-                    if (parentTask != null) {
-                        System.out.println("Выбранная задача \n" + parentTask);
-                        Optional<Map<Integer, Task>> subtasksOptional = manager.getSubtasksByEpic(parentTask);
-
-                        if (subtasksOptional.isPresent()) {
-                            Map<Integer, Task> allTasks7 = subtasksOptional.get();
-                            System.out.println("содержит подзадачи");
-                            printTasks(allTasks7);
-                        }
-                    }
+                    System.out.println("Выбранная задача:\n" + parentTask);
+                    manager.getSubtasksByEpic(parentTask)
+                            .ifPresentOrElse(
+                                    subtasks -> {
+                                        System.out.println("Содержит подзадачи:");
+                                        printTasks(subtasks);
+                                    },
+                                    () -> System.out.println("Не содержит подзадач")
+                            );
                     break;
-                case "8": // Выход из программы
-                    System.out.println("История просмотренных задач");
-                    List<Task> historyTasks = manager.getHistory();
-                    if (historyTasks.isEmpty()) {
-                        System.out.println("История просмотренных задач пуста.");
-                    } else {
-                        for (Task t : historyTasks) {
-                            System.out.print(t.getId() + " ");
-                        }
-                    }
+                case "8": // История просмотренных задач
+                    List<Task> history = manager.getHistory();
+                    System.out.println(history.isEmpty()
+                            ? "История просмотренных задач пуста."
+                            : "История просмотренных задач:");
+                    history.forEach(task -> System.out.print(task.getId() + " "));
+                    System.out.println();
                     break;
-                case "9": // Выход из программы
+                case "9":  //Получение отсортированного списка задач.
+                    Set<Task> prioritizedTasks = manager.getPrioritizedTasks();
+                    System.out.println(prioritizedTasks.isEmpty()
+                            ? "Отсортированный список задач пуст"
+                            : "Отсортированный список задач:");
+                    prioritizedTasks.forEach(System.out::println);
+                    break;
+                case "10": // Выход из программы
                     System.out.println("Завершение программы. До свиданья!");
                     return;
                 default:
@@ -96,19 +107,20 @@ public class Main {
     private static void addTestTasks() {
         // тестовые задачи
         Epic tTask0 = new Epic("Переезд", "");
-        Subtask tTask1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", tTask0);
-        Subtask tTask2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", tTask0);
-        Task tTask3 = new Task("Включить чайник", "вскипятить 1.5 литра воды");
-        Task tTask4 = new Task("Заварить чай", "зеленый китайский");
+        Subtask tTask1 = new Subtask("Собрать коробки", "Положить все вещи в коробки", tTask0,
+                LocalDateTime.of(2025, 5, 14, 9, 30), Duration.ofMinutes(60));
+        Subtask tTask2 = new Subtask("Упаковать кошку", "Положить кошку в клетку", tTask0,
+                LocalDateTime.of(2025, 5, 14, 10, 30), Duration.ofMinutes(30)); // +1 час после tTask1
+        Task tTask3 = new Task("Включить чайник", "вскипятить 1.5 литра воды",
+                LocalDateTime.of(2025, 5, 14, 11, 0), Duration.ofMinutes(10));
+        Task tTask4 = new Task("Заварить чай", "зеленый китайский",
+                LocalDateTime.of(2025, 5, 14, 11, 10), Duration.ofMinutes(5)); // +10 минут после tTask3
         Epic tTask5 = new Epic("Сделать проект", "прогноз рынка гаджетов");
-        Subtask tTask6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", tTask5);
-        manager.addTask(tTask0);
-        manager.addTask(tTask1);
-        manager.addTask(tTask2);
-        manager.addTask(tTask3);
-        manager.addTask(tTask4);
-        manager.addTask(tTask5);
-        manager.addTask(tTask6);
+        Subtask tTask6 = new Subtask("Найти информацию", "Продажи гаджетов по годам", tTask5,
+                LocalDateTime.of(2025, 5, 14, 12, 0), Duration.ofMinutes(120));
+
+        Stream.of(tTask0, tTask1, tTask2, tTask3, tTask4, tTask5, tTask6)
+                .forEach(manager::addTask);
     }
 
 
@@ -122,7 +134,8 @@ public class Main {
         System.out.println("6 - Удаление задачи по идентификатору.");
         System.out.println("7 - Получение списка всех подзадач определённого эпика.");
         System.out.println("8 - История просмотра задач.");
-        System.out.println("9 - Выход из программы.");
+        System.out.println("9 - Получение отсортированного списка задач.");
+        System.out.println("10 - Выход из программы.");
     }
 
 
@@ -134,7 +147,6 @@ public class Main {
         }
         // тип задачи
         TaskType taskType = askTaskTypeFromUser();
-
         return manager.getAllTasksByType(taskType);
     }
 
@@ -149,7 +161,8 @@ public class Main {
         // тип задачи
         TaskType taskType = askTaskTypeFromUser();
         if (taskType == TaskType.EPIC) {
-            System.out.println("Задачи с типом EPIC будут удалены вместе с подзадачами. Подтвердить удаление да(1)/нет(0).");
+            System.out.println("Задачи с типом EPIC будут удалены вместе с подзадачами. " +
+                    "Подтвердить удаление да(1)/нет(0).");
             String input = scanner.nextLine().trim();
             if (input.equals("0")) {
                 System.out.println("Отмена операции удаления.");
@@ -176,7 +189,6 @@ public class Main {
 
 
     public static Task prepareAndCreateTask() {
-
         // подготовка параметров
         // тип задачи
         TaskType taskType = askTaskTypeFromUser();
@@ -195,74 +207,107 @@ public class Main {
                 return null;
             }
         }
+        // дата старта задачи
+        LocalDateTime startTime = null;
+        if (taskType != TaskType.EPIC) {
+            startTime = askStartTimeFromUser();
+        }
+        // продолжительность задачи
+        Duration duration = null;
+        if (taskType != TaskType.EPIC) {
+            duration = askDurationFromUser();
+        }
 
         // фабрика создания задачи
-        return manager.createTask(taskType, name, description, parentTask);
+        return manager.createTask(taskType, name, description, parentTask, startTime, duration);
+    }
+
+
+    private static LocalDateTime askStartTimeFromUser() {
+        // дать 3 попытки пользователю ввести дату в правильном формате
+        for (int attempts = 0; attempts < 3; attempts++) {
+            try {
+                System.out.print("Введите дату начала (dd.MM.yyyy HH:mm) -> ");
+                String input = scanner.nextLine().trim();
+                if (input.isEmpty()) return null;
+                return LocalDateTime.parse(input, Task.DATE_TIME_FORMATTER);
+            } catch (DateTimeParseException e) {
+                System.out.println(attempts < 2
+                        ? "Ошибка формата, попробуйте еще (" + (2 - attempts) + " попытки)"
+                        : "Дата не установлена");
+            }
+        }
+        return null;
+    }
+
+    private static Duration askDurationFromUser() {
+        System.out.print("Укажите количество минут, которое требуется для выполнения задачи:");
+        String input = scanner.nextLine().trim();
+        return DurationValidator.parse(input);
     }
 
     public static Task prepareAndUpdateTask() {
-
         // выбрать задачу для обновления
-        Optional<Task> optionalTask = askTaskIdFromUser();
-        if (optionalTask.isEmpty()) {
-            return null;
-        }
-        Task oldTask = optionalTask.get();
+        Task oldTask = askTaskIdFromUser().orElse(null);
+        if (oldTask == null) return null;
 
         // подготовка полей к обновлению, заполним их исходными значениями
         String newName = oldTask.getName();
         String newDescription = oldTask.getDescription();
         Status newStatus = oldTask.getStatus();
+        LocalDateTime newStartTime = oldTask.getStartTime();
+        Duration newDuration = oldTask.getDuration();
 
         // выбор поля для обновления, так как за один раз обновляем только одно поле в задаче
-        System.out.print("Введите поле, которое хотите обновить: name, description, status:");
-        String input = scanner.nextLine().trim();
+        System.out.print("Введите поле, которое хотите обновить: name, description, status, starttime, duration:");
+        String field = scanner.nextLine().trim().toLowerCase();
+        switch (field) {
+            case "name" -> newName = askTaskNameFromUser();
+            case "description" -> newDescription = askTaskDescriptionFromUser();
 
-
-        switch (input) {
-            case "name":
-                newName = askTaskNameFromUser();
-                break;
-            case "description":
-                newDescription = askTaskDescriptionFromUser();
-                break;
-            case "status":
+            case "status", "starttime", "duration" -> {
                 if (oldTask instanceof Epic) {
-                    System.out.println("Статус у задачи Epic нельзя поменять вручную, он обновляется автоматически.");
+                    System.out.printf("Поле '%s' для Epic обновляется автоматически%n", field);
                     return null;
                 }
-                newStatus = askTaskStatusFromUser();
-                break;
-            default:
-                System.out.println("Поле <" + input + "> нельзя обновить");
+                switch (field) { // Вложенный switch для полей с особой логикой
+                    case "status" -> newStatus = askTaskStatusFromUser();
+                    case "starttime" -> newStartTime = askStartTimeFromUser();
+                    case "duration" -> newDuration = askDurationFromUser();
+                }
+            }
+            default -> {
+                System.out.println("Указанное поле недоступно для обновления");
+                return null;
+            }
         }
 
         // Проверяем, изменилось ли какое-то из полей
-        boolean isSame = newName.equals(oldTask.getName()) &&
+        if (newName.equals(oldTask.getName()) &&
                 newDescription.equals(oldTask.getDescription()) &&
-                newStatus == oldTask.getStatus();
-
-        if (isSame) {
-            System.out.println("Вы не изменили ни одно поле.");
+                newStatus == oldTask.getStatus() &&
+                Objects.equals(newStartTime, oldTask.getStartTime()) &&
+                Objects.equals(newDuration, oldTask.getDuration())) {
+            System.out.println("Изменений не обнаружено");
             return null;
         }
 
-        return manager.updateTask(oldTask.getTaskType(),
+        return manager.updateTask(
+                oldTask.getTaskType(),
                 oldTask.getId(),
                 newName,
                 newDescription,
-                newStatus);
+                newStatus,
+                newStartTime,
+                newDuration);
     }
 
 
     public static boolean deleteTaskById() {
         // выбрать задачу для удаления
-        Optional<Task> optionalTask = askTaskIdFromUser();
+        Task task = askTaskIdFromUser().orElse(null);
+        if (task == null) return false;
 
-        if (optionalTask.isEmpty()) {
-            return false;
-        }
-        Task task = optionalTask.get();
         if (task instanceof Epic) {
             System.out.println("Задача будет удалена вместе в подзадачами. Подтвердить да(1)/нет(0).");
             String input = scanner.nextLine().trim();
@@ -276,31 +321,16 @@ public class Main {
 
     public static Optional<Task> getTaskIdAndSaveToHistory() {
         Optional<Task> optionalTask = askTaskIdFromUser();
-        if (optionalTask.isPresent()) {
-            Task task = optionalTask.get();
-            manager.saveTaskToHistory(task.getId());
-        }
+        optionalTask.ifPresent(task -> manager.saveTaskToHistory(task.getId()));
         return optionalTask;
     }
 
 
     public static Optional<Task> askTaskIdFromUser() {
-
         System.out.print("Введите id задачи: ");
         String input = scanner.nextLine().trim();
 
-        while (!isPositiveInteger(input)) {
-            System.out.print("Ожидается положительное число.\nВведите id задачи: ");
-            input = scanner.nextLine().trim();
-        }
-
-        int id = Integer.parseInt(input);
-        Optional<Task> optionalTask = manager.getTaskById(id);
-
-        if (optionalTask.isEmpty()) {
-            System.out.println("Задача " + id + " не найдена. Проверьте список задач.");
-        }
-        return optionalTask;
+        return Validators.validateTaskId(manager, scanner, input);
     }
 
     public static String askTaskNameFromUser() {
@@ -322,24 +352,25 @@ public class Main {
         System.out.print("Введите id родительской задачи: ");
         String input = scanner.nextLine().trim();
 
-        while (!isPositiveInteger(input)) {
-            System.out.print("Ожидается положительное число: ");
-            input = scanner.nextLine().trim();
-        }
+        try {
+            // 1. Валидация числового ввода
+            int id = Validators.validatePositiveIntInput(input,
+                    "Ожидается положительное число: ",
+                    scanner);
 
-        int id = Integer.parseInt(input);
-        Optional<Task> optionalTask = manager.getTaskById(id);
-        if (optionalTask.isEmpty()) {
-            System.out.println("Задача " + id + " не найдена. Проверьте список задач.");
+            // 2. Проверка существования задачи
+            Optional<Task> taskOpt = Validators.validateTaskExists(id, manager);
+            if (taskOpt.isEmpty()) {
+                return null;
+            }
+            // 3. Проверка типа задачи Epic
+            Optional<Epic> epicOpt = Validators.validateIsEpic(taskOpt.get());
+            return epicOpt.orElse(null);
+
+        } catch (Exception e) {
+            System.out.println("Ошибка при обработке ввода: " + e.getMessage());
             return null;
         }
-        Task parentTask = optionalTask.get();
-        if (!(parentTask instanceof Epic)) {
-            System.out.println("Родительская задача " + id + " не найдена. Проверьте список задач с типом EPIC");
-            return null;
-        }
-
-        return (Epic) parentTask;
     }
 
     public static TaskType askTaskTypeFromUser() {
@@ -370,10 +401,6 @@ public class Main {
             }
         }
         return status;
-    }
-
-    public static boolean isPositiveInteger(String input) {
-        return !input.isEmpty() && input.matches("[1-9]\\d*");
     }
 }
 

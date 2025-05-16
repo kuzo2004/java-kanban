@@ -42,7 +42,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         tail = newNode;
     }
 
-
     @Override
     public void remove(int id) {
 
@@ -57,7 +56,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (node == null) {
             return;
         }
-
 
         if (head == node && tail == node) {
             // Если был единственный узел
@@ -86,7 +84,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     public void clear() {
         /*
         Стандартный LinkedList  рекомендует очищать все ссылки
-         Clearing all of the links between nodes is "unnecessary", but:
+         Clearing  of the links between nodes is "unnecessary", but:
          - helps a generational GC if the discarded nodes inhabit
            more than one generation
          - is sure to free memory even if there is a reachable Iterator */
