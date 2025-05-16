@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface TaskManager {
 
@@ -15,6 +16,8 @@ public interface TaskManager {
     Map<Integer, Task> getAllTasks();
 
     Map<Integer, Task> getAllTasksByType(TaskType taskType);
+
+    Set<Task> getPrioritizedTasks();
 
     void clearAllTasks();
 
@@ -28,7 +31,7 @@ public interface TaskManager {
                     LocalDateTime startTime, Duration duration);
 
     Task updateTask(TaskType taskType, int uniqueID, String name, String description, Status status,
-                    LocalDateTime startTime,Duration duration);
+                    LocalDateTime startTime, Duration duration);
 
     boolean deleteTask(Task task);
 

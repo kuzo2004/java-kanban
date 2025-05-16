@@ -107,28 +107,50 @@ public class Epic extends Task {
         return sb.toString();
     }
 
+    /**
+     * Если есть хотя бы одна подзадача IN_PROGRESS → эпик IN_PROGRESS
+     * Если есть смесь статусов (не все NEW и не все DONE) → эпик IN_PROGRESS
+     * Если все подзадачи NEW → эпик NEW
+     * Если все подзадачи DONE → эпик DONE
+     */
     public void recountStatus() {
         if (subtasks.isEmpty()) {
             status = Status.NEW;
             return;
         }
-        boolean hasNew = false;
+        boolean allDone = true;
+        boolean allNew = true;
+        boolean anyInProgress = false;
+
         for (Task subtask : subtasks.values()) {
             Status subtaskStatus = subtask.getStatus();
+
             if (subtaskStatus == Status.IN_PROGRESS) {
-                status = Status.IN_PROGRESS;
-                return;
-            } else if (subtaskStatus == Status.NEW) {
-                hasNew = true;
+                anyInProgress = true;
+            }
+
+            if (subtaskStatus != Status.DONE) {
+                allDone = false;
+            }
+
+            if (subtaskStatus != Status.NEW) {
+                allNew = false;
             }
         }
-        status = hasNew ? Status.NEW : Status.DONE;
+
+        if (anyInProgress || (!allNew && !allDone)) {
+            status = Status.IN_PROGRESS;
+        } else if (allNew) {
+            status = Status.NEW;
+        } else {
+            status = Status.DONE;
+        }
     }
 
     @Override
     public String toString() {
         return super.toString() +
-                " subtasks= {" +
+                "subtasks={" +
                 getSubtasksListAsString() +
                 '}';
     }

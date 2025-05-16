@@ -29,9 +29,9 @@ class InMemoryHistoryManagerTest {
 
     // предварительные действия, но не для всех тестов
     private void addThreeTasksAndSaveToHistory() {
-        task1 = new Task("Task 1", "Description 1");
-        task2 = new Task("Task 2", "Description 2");
-        task3 = new Task("Task 3", "Description 3");
+        task1 = new Task("Task 1", "DescTask 1");
+        task2 = new Task("Task 2", "DescTask 2");
+        task3 = new Task("Task 3", "DescTask 3");
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         taskManager.addTask(task3);
@@ -54,7 +54,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testRemoveTaskFromHistory() {
+    void testRemoveMiddleTaskFromHistory() {
         addThreeTasksAndSaveToHistory();
 
         taskManager.deleteTask(task2);
@@ -107,7 +107,7 @@ class InMemoryHistoryManagerTest {
     void testSaveTaskHistoryWithoutDuplicates() {
 
         // Создаем задачу
-        Task createdTask = new Task("Task 1", "Description");
+        Task createdTask = new Task("Task 1", "Des №1");
         int id = createdTask.getId();
         taskManager.addTask(createdTask);
         // сохраняем в историю
@@ -115,7 +115,7 @@ class InMemoryHistoryManagerTest {
 
         // Обновляем статус этой же задачи
         Task updatedtask = taskManager.updateTask(TaskType.TASK, id, "Task 1",
-                "Description", Status.IN_PROGRESS);
+                "Des_№1", Status.IN_PROGRESS, null, null);
         // сохраняем в историю обновленную задачу
         taskManager.saveTaskToHistory(updatedtask.getId());
 
@@ -149,8 +149,8 @@ class InMemoryHistoryManagerTest {
         Epic epic = new Epic("Epic 1", "Description");
         taskManager.addTask(epic);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", epic);
-        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", epic);
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", epic, null, null);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", epic, null, null);
         taskManager.addTask(subtask1);
         taskManager.addTask(subtask2);
 
@@ -173,6 +173,5 @@ class InMemoryHistoryManagerTest {
         //Количество задач в taskManager должно остаться 0, так как эпик удаляется с подзадачами
         Map<Integer, Task> tasksAfter = taskManager.getAllTasks();
         assertTrue(tasksAfter.isEmpty(), "Количество задач в taskManager должно остаться ноль");
-
     }
 }

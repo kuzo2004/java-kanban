@@ -2,6 +2,7 @@ package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.entity.*;
 import ru.yandex.practicum.exceptions.ManagerSaveException;
+import ru.yandex.practicum.exceptions.TimeConflictException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -41,7 +42,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
     public void save() {
         try (BufferedWriter writer = Files.newBufferedWriter(path)) {
-            writer.write("id,type,name,status,description,epic" + System.lineSeparator());
+            writer.write("id,type,name,status,description,epic,startTime,duration" + System.lineSeparator());
             for (Task task : tasks.values()) {
                 String processedLine = task.writeToString() + System.lineSeparator();
                 writer.write(processedLine);
@@ -67,37 +68,49 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 }
                 createTaskFromCsvLine(line);
             }
+        } catch (TimeConflictException e) {
+            throw new RuntimeException("Загрузка остановлена, обнаружены некорректные данные. " + e.getMessage());
+
         } catch (IOException e) {
             throw new RuntimeException("Не удалось прочитать файл " + path, e);
         }
     }
 
     public void createTaskFromCsvLine(String value) {
-        String[] fields = value.split(",");
-        if (fields.length < 7) {
+        String[] fields = value.split(",", -1);  // -1 сохраняет пустые значения
+
+        if (fields.length < 8) {
             throw new RuntimeException("Недостаточно данных в строке: " + value);
         }
 
         try {
-            int id = Integer.parseInt(fields[0]);
-            TaskType type = TaskType.valueOf(fields[1].toUpperCase());
-            String name = fields[2];
-            Status status = Status.valueOf(fields[3]);
-            String description = fields[4];
-            LocalDateTime startTime = LocalDateTime.parse(fields[5]);
-            Duration duration = Duration.parse(fields[6]);
+            int id = Integer.parseInt(fields[0].trim());
+            TaskType type = TaskType.valueOf(fields[1].trim().toUpperCase());
+            String name = fields[2].trim();
+            Status status = Status.valueOf(fields[3].trim());
+            String description = fields[4].trim().isEmpty() ? "" : fields[4].trim();
+
+            // Обработка startTime (может быть пустым)
+            LocalDateTime startTime = null;
+            if (!fields[6].trim().isEmpty()) {
+                startTime = LocalDateTime.parse(fields[6].trim(), Task.DATE_TIME_FORMATTER);
+            }
+
+            // Обработка duration (может быть пустым)
+            Duration duration = null;
+            if (!fields[7].trim().isEmpty()) {
+                duration = Duration.ofMinutes(Long.parseLong(fields[7].trim()));
+            }
 
             switch (type) {
                 case TASK -> createExistingTask(id, type, name, description, status, null, startTime, duration);
-                case EPIC -> createExistingTask(id, type, name, description, status, null,null,null);
+                case EPIC -> createExistingTask(id, type, name, description, status, null, null, null);
                 case SUBTASK -> {
-                    if (fields.length < 8) {
-                        throw new RuntimeException("Для подзадачи не указан эпик");
-                    }
                     Epic parentEpic = (Epic) tasks.get(Integer.parseInt(fields[5]));
                     createExistingTask(id, type, name, description, status, parentEpic, startTime, duration);
                 }
             }
+            Task.counter = Math.max(Task.counter, id);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Неверный формат данных для создания задачи:" + value, e);
         }
@@ -109,7 +122,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         Task task = switch (taskType) {
             case TASK -> new Task(id, name, description, status, startTime, duration);
             case EPIC -> new Epic(id, name, description);
-            case SUBTASK -> new Subtask(id, name, description, status, parentEpic,startTime, duration);
+            case SUBTASK -> new Subtask(id, name, description, status, parentEpic, startTime, duration);
         };
         super.addTask(task);
     }

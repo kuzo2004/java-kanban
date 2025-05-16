@@ -14,12 +14,12 @@ class SubtaskTest {
 
         Epic epic = new Epic("Epic 1", "Description 1");
 
-        Subtask subtask1 = new Subtask(1, "Subtask 1", "Description 1", Status.NEW, epic);
-        Subtask subtask2 = new Subtask(1, "Subtask 2", "Description 2", Status.IN_PROGRESS, epic);
+        Subtask subtask1 = new Subtask(1, "Subtask 1", "Description 1", Status.NEW, epic, null, null);
+        Subtask subtask2 = new Subtask(1, "Subtask 2", "Description 2", Status.IN_PROGRESS, epic, null, null);
 
         assertEquals(subtask1, subtask2, "Subtask с одинаковым id должны быть равны");
 
-        Subtask subtask3 = new Subtask("Subtask 3", "Description 3", epic);
+        Subtask subtask3 = new Subtask("Subtask 3", "Description 3", epic, null, null);
 
         assertNotEquals(subtask1, subtask3, "Subtask с разными id не должны быть равны");
     }
@@ -28,12 +28,12 @@ class SubtaskTest {
     public void testSubtaskCannotBeParentForAnotherSubtask() {
         // Подготовка тестовых данных
         Epic epic = new Epic(1, "Epic 1", "Description", new HashMap<>());
-        Task subtask = new Subtask(2, "Subtask 1", "Description", Status.NEW, epic);
+        Task subtask = new Subtask(2, "Subtask 1", "Description", Status.NEW, epic, null, null);
 
         // Проверка исключения с помощью assertThrows
         WrongParentEpicException exception = assertThrows(
                 WrongParentEpicException.class,
-                () -> new Subtask(3, "Subtask 2", "Description", Status.NEW, subtask),
+                () -> new Subtask(3, "Subtask 2", "Description", Status.NEW, subtask, null, null),
                 "Подзадача не должна принимать другую подзадачу в качестве родителя"
         );
 

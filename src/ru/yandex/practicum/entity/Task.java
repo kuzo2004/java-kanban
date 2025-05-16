@@ -4,8 +4,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-public class Task {
+public class Task implements Comparable<Task> {
     private int id;
     private String name;
     private String description;
@@ -14,8 +15,9 @@ public class Task {
     private Duration duration;
 
     public static int counter;
-    private static final DateTimeFormatter DATE_TIME_FORMATTER =
+    public static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    public static final long MAX_DURATION_MINUTES = TimeUnit.DAYS.toMinutes(30);  // например, 30 дней
 
     public Task(String name, String description) {
         this.id = generateId();
@@ -31,6 +33,7 @@ public class Task {
         this.duration = duration;
 
     }
+
     // при обновлении (для наследников)
     public Task(int id, String name, String description, LocalDateTime startTime, Duration duration) {
         this.id = id;
@@ -40,6 +43,7 @@ public class Task {
         this.duration = duration;
 
     }
+
     // при обновлении самого класса
     public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this(id, name, description, startTime, duration);
@@ -115,14 +119,28 @@ public class Task {
     }
 
     @Override
+    public int compareTo(Task other) {
+        if (other == null) {
+            throw new NullPointerException("Задача для сравнения не может быть null");
+        }
+        if (startTime == null || other.getStartTime() == null) {
+            throw new IllegalArgumentException("startTime не может быть null");
+        }
+        if (other instanceof Epic) {
+            throw new ClassCastException("Объект не должен быть типа Epic");
+        }
+        return startTime.compareTo(other.getStartTime());
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hashCode(id);
     }
 
     @Override
     public String toString() {
-        String className = String.format("%-12s{", this.getClass().getSimpleName());
-        String idStr = "id=" + String.format("%-4s", (id + ","));
+        String className = String.format("%-8s{", this.getClass().getSimpleName());
+        String idStr = "id=" + String.format("%-3s", (id + ","));
 
         // Название задачи (сокращение, если слишком длинное)
         String nameStr = " name=" + (name.length() > 20
@@ -130,7 +148,7 @@ public class Task {
                 : String.format("%-21s", (name + ",")));
 
         // Описание задачи (сокращение, если слишком длинное)
-        String descriptionStr = " description=" + (description.length() > 20
+        String descriptionStr = " descrpt" + (description.length() > 20
                 ? description.substring(0, 17) + "...,"
                 : String.format("%-21s", (description + ",")));
 
@@ -138,19 +156,19 @@ public class Task {
         String statusStr = " status=" + String.format("%-12s", (status + ","));
 
         // Время начала (с проверкой на null и форматированием)
-        String startTimeStr = " startTime=" + (getStartTime() != null
+        String startTimeStr = " start=" + (getStartTime() != null
                 ? String.format("%-15s", getStartTime().format(DATE_TIME_FORMATTER) + ",")
                 : String.format("%-15s", "null,"));
 
         // Время окончания (с проверкой на null и форматированием)
-        String endTimeStr = " endTime=" + (getEndTime() != null
+        String endTimeStr = " end=" + (getEndTime() != null
                 ? String.format("%-15s", getEndTime().format(DATE_TIME_FORMATTER) + ",")
                 : String.format("%-15s", "null,"));
 
         // Продолжительность (с проверкой на null)
-        String durationStr = " duration=" + (getDuration() != null
-                ? String.format("%-15s", getDuration().toMinutes() + " мин}")
-                : String.format("%-15s", "null}"));
+        String durationStr = " dur=" + (getDuration() != null
+                ? String.format("%-8s", getDuration().toMinutes() + " мин}")
+                : String.format("%-8s", "null}"));
 
         // Сборка всех частей в одну строку
         return className + idStr + nameStr + descriptionStr +
@@ -158,13 +176,30 @@ public class Task {
     }
 
     public String writeToString() {
-        return id + "," +
-                this.getClass().getSimpleName() + "," +
-                name + "," +
-                status + "," +
-                (description.isBlank() ? " " : description) + "," +
-                (getStartTime()!= null ? getStartTime() : " ," )+
-                (getDuration()!= null ? getDuration() : " ,");
+        // Основная часть (общая для всех задач)
+        String mainPart = String.join(",",
+                String.valueOf(id),
+                this.getClass().getSimpleName(),
+                name,
+                status.toString(),
+                description.isBlank() ? " " : description
+        );
+
+        // Часть для подзадачи (ID эпика) или пробел для других типов
+        String subtaskPart = this instanceof Subtask ?
+                String.valueOf(((Subtask) this).getParentEpic().getId()) : " ";
+
+        // Часть с временем (пустая для Epic)
+        String timePart;
+        if (this instanceof Epic) {
+            timePart = ",,";  // Пустые значения для Epic
+        } else {
+            timePart = String.join(",",
+                    getStartTime() != null ? getStartTime().format(DATE_TIME_FORMATTER) : " ",
+                    getDuration() != null ? String.valueOf(getDuration().toMinutes()) : " "
+            );
+        }
+        return String.join(",", mainPart, subtaskPart, timePart) + ",";
     }
 }
 
