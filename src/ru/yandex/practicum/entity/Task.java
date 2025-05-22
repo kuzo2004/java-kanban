@@ -123,12 +123,22 @@ public class Task implements Comparable<Task> {
         if (other == null) {
             throw new NullPointerException("Задача для сравнения не может быть null");
         }
-        if (startTime == null || other.getStartTime() == null) {
-            throw new IllegalArgumentException("startTime не может быть null");
-        }
         if (other instanceof Epic) {
             throw new ClassCastException("Объект не должен быть типа Epic");
         }
+        // Если у текущей задачи startTime null, а у другой нет - текущая задача идёт после
+        if (this.startTime == null && other.getStartTime() != null) {
+            return 1;
+        }
+        // Если у другой задачи startTime null, а у текущей нет - текущая задача идёт раньше
+        if (this.startTime != null && other.getStartTime() == null) {
+            return -1;
+        }
+        // Если у обеих задач startTime null - они считаются равными
+        if (this.startTime == null && other.getStartTime() == null) {
+            return 0;
+        }
+        // Если у обеих задач есть startTime - сравниваем их
         return startTime.compareTo(other.getStartTime());
     }
 
