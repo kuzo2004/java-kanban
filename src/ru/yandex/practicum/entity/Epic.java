@@ -1,7 +1,10 @@
 package ru.yandex.practicum.entity;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.time.Duration;
 
 
 public class Epic extends Task {
@@ -15,13 +18,13 @@ public class Epic extends Task {
     }
 
     public Epic(int id, String name, String description) { //запись из файла
-        super(id, name, description);
+        super(id, name, description, null, null);
         subtasks = new HashMap<>();
         recountStatus();
     }
 
     public Epic(int id, String name, String description, Map<Integer, Task> subtasks) { // при обновлении
-        super(id, name, description);
+        super(id, name, description, null, null);
         this.subtasks = subtasks;
         removeNonSubtaskItems();
         recountStatus();
@@ -36,6 +39,39 @@ public class Epic extends Task {
     public Epic copy() {
         return new Epic(this);
     }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        if (subtasks.isEmpty()) {
+            return null;
+        }
+        return subtasks.values().stream()
+                .map(Task::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        if (subtasks.isEmpty()) {
+            return null;
+        }
+        return subtasks.values().stream()
+                .map(Task::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    @Override
+    public Duration getDuration() {
+        return subtasks.values().stream()
+                .map(Task::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
 
     public void removeNonSubtaskItems() {
 
@@ -71,28 +107,50 @@ public class Epic extends Task {
         return sb.toString();
     }
 
+    /**
+     * Если есть хотя бы одна подзадача IN_PROGRESS → эпик IN_PROGRESS
+     * Если есть смесь статусов (не все NEW и не все DONE) → эпик IN_PROGRESS
+     * Если все подзадачи NEW → эпик NEW
+     * Если все подзадачи DONE → эпик DONE
+     */
     public void recountStatus() {
         if (subtasks.isEmpty()) {
             status = Status.NEW;
             return;
         }
-        boolean hasNew = false;
+        boolean allDone = true;
+        boolean allNew = true;
+        boolean anyInProgress = false;
+
         for (Task subtask : subtasks.values()) {
             Status subtaskStatus = subtask.getStatus();
+
             if (subtaskStatus == Status.IN_PROGRESS) {
-                status = Status.IN_PROGRESS;
-                return;
-            } else if (subtaskStatus == Status.NEW) {
-                hasNew = true;
+                anyInProgress = true;
+            }
+
+            if (subtaskStatus != Status.DONE) {
+                allDone = false;
+            }
+
+            if (subtaskStatus != Status.NEW) {
+                allNew = false;
             }
         }
-        status = hasNew ? Status.NEW : Status.DONE;
+
+        if (anyInProgress || (!allNew && !allDone)) {
+            status = Status.IN_PROGRESS;
+        } else if (allNew) {
+            status = Status.NEW;
+        } else {
+            status = Status.DONE;
+        }
     }
 
     @Override
     public String toString() {
         return super.toString() +
-                " subtasks= {" +
+                "subtasks={" +
                 getSubtasksListAsString() +
                 '}';
     }
