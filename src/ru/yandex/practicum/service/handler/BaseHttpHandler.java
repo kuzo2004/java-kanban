@@ -20,17 +20,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-class TaskListTypeToken extends TypeToken<List<Task>> {
-    // здесь ничего не нужно реализовывать
-}
+
 
 public class BaseHttpHandler implements HttpHandler {
-    public final String PATH;
+    public final String path;
     public final TaskManager manager;
     public final Gson gson;
 
+    static class TaskListTypeToken extends TypeToken<List<Task>> {
+    }
+
     public BaseHttpHandler(String path, TaskManager managers, Gson gson) {
-        this.PATH = path;
+        this.path = path;
         this.manager = managers;
         this.gson = gson;
     }
@@ -57,7 +58,7 @@ public class BaseHttpHandler implements HttpHandler {
     }
 
     private void delete(HttpExchange exchange) throws IOException {
-        TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(PATH));
+        TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(path));
         String param = getPathParam(exchange);
         if (param.isEmpty()) {
             throw new IllegalArgumentException("Нет такой команды.");// сразу все задачи по условию нельзя удалить
@@ -73,7 +74,7 @@ public class BaseHttpHandler implements HttpHandler {
     }
 
     private void get(HttpExchange exchange) throws IOException {
-        TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(PATH));
+        TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(path));
         String param = getPathParam(exchange);
 
         if (param.isEmpty()) {
@@ -155,7 +156,7 @@ public class BaseHttpHandler implements HttpHandler {
 
     protected String getPathParam(HttpExchange exchange) {
         String requestedPath = exchange.getRequestURI().getPath();
-        String beginPath = PATH + "/";
+        String beginPath = path + "/";
         return requestedPath.substring(requestedPath.indexOf(beginPath) + beginPath.length());
     }
 
@@ -163,7 +164,7 @@ public class BaseHttpHandler implements HttpHandler {
         try (InputStreamReader reader = new InputStreamReader(
                 exchange.getRequestBody(), StandardCharsets.UTF_8)) {
 
-            TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(PATH));
+            TaskType taskTypePath = TaskType.valueOf(seekTaskTypeStringFromPath(path));
 
             // gson парсер почему-то видит только отдельный класс TaskDto, в внутренний - не видит.
             TaskDto taskDto = gson.fromJson(reader, TaskDto.class);
