@@ -1,10 +1,11 @@
 package ru.yandex.practicum.entity;
 
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.time.Duration;
 
 
 public class Epic extends Task {

@@ -1,7 +1,10 @@
 package ru.yandex.practicum.manager;
 
 
-import ru.yandex.practicum.service.*;
+import ru.yandex.practicum.service.HistoryManager;
+import ru.yandex.practicum.service.InMemoryHistoryManager;
+import ru.yandex.practicum.service.InMemoryTaskManager;
+import ru.yandex.practicum.service.TaskManager;
 
 import java.io.File;
 
@@ -9,7 +12,6 @@ import java.io.File;
 public class Managers {
 
     private static final File DEFAULT_TASKS_FILE = new File("tasks.csv");
-
 
     // поле для целей тестирования, чтобы подменять на временные файлы в момент теста
     private static File tasksFile = DEFAULT_TASKS_FILE;
@@ -20,7 +22,9 @@ public class Managers {
 
 
     public static TaskManager getDefault() {
-        return FileBackedTaskManager.loadFromFile(tasksFile); // менеджер можно переключать на new InMemoryTaskManager();
+        return new InMemoryTaskManager();
+        // менеджер можно переключать на
+        // FileBackedTaskManager.loadFromFile(tasksFile);
     }
 
     public static HistoryManager getDefaultHistory() {

@@ -1,5 +1,7 @@
 package ru.yandex.practicum.entity;
 
+import com.google.gson.annotations.Expose;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,16 +9,24 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Task implements Comparable<Task> {
+    @Expose
     private int id;
+    @Expose
     private String name;
+    @Expose
     private String description;
+    @Expose
     protected Status status;
+    @Expose
     private LocalDateTime startTime;
+    @Expose
     private Duration duration;
 
     public static int counter;
+    @Expose
     public static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    @Expose
     public static final long MAX_DURATION_MINUTES = TimeUnit.DAYS.toMinutes(30);  // например, 30 дней
 
     public Task(String name, String description) {

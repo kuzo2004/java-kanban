@@ -5,6 +5,7 @@ public enum TaskType {
     EPIC(Epic.class),
     SUBTASK(Subtask.class);
 
+
     private final Class<? extends Task> taskClass;
 
     TaskType(Class<? extends Task> taskClass) {
@@ -12,6 +13,7 @@ public enum TaskType {
     }
 
     public Class<? extends Task> getTaskClass() {
+
         return taskClass;
     }
 }
