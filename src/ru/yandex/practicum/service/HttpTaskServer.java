@@ -17,12 +17,18 @@ import java.util.stream.Stream;
 
 
 public class HttpTaskServer {
+    private static final int MIN_PORT = 1;
+    private static final int MAX_PORT = 65535;
+
     private int port;
     private TaskManager manager;
-    private Gson  gson;
+    private Gson gson;
     private HttpServer httpServer;
 
-   public HttpTaskServer(TaskManager manager, int port) {
+    public HttpTaskServer(TaskManager manager, int port) {
+        if (port < MIN_PORT || port > MAX_PORT) {
+            throw new IllegalArgumentException("Порт должен быть в диапазоне от " + MIN_PORT + " до " + MAX_PORT);
+        }
         this.manager = manager;
         this.port = port;
         this.gson = getGson();
@@ -38,17 +44,17 @@ public class HttpTaskServer {
     }
 
     public void start() throws IOException {
+
         if (httpServer != null) {
             throw new IllegalStateException("Сервер уже запущен");
         }
+
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-        // Создаем обработчики с передачей базового пути
         httpServer.createContext("/tasks", new TaskHandler("/tasks", manager, gson));
         httpServer.createContext("/subtasks", new SubtaskHandler("/subtasks", manager, gson));
         httpServer.createContext("/epics", new EpicHandler("/epics", manager, gson));
         httpServer.createContext("/history", new HistoryHandler("/history", manager, gson));
         httpServer.createContext("/prioritized", new PrioritizedHandler("/prioritized", manager, gson));
-
         httpServer.start();
         System.out.println("HTTP-сервер запущен на порту " + port);
     }
@@ -61,15 +67,24 @@ public class HttpTaskServer {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        try {
+            TaskManager manager = Managers.getDefault();
+            initializeTestData(manager);
 
-        TaskManager manager = Managers.getDefault();
-        initializeTestData(manager);
+            HttpTaskServer server = new HttpTaskServer(manager, 8080);
+            server.start();
 
-        HttpTaskServer server = new HttpTaskServer(manager, 8080);
-        server.start();
-
+        } catch (IllegalArgumentException e) {
+            System.err.println("Некорректный порт: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.err.println("Ошибка: сервер уже запущен или в неверном состоянии!");
+        } catch (IOException e) {
+            System.err.println("Ошибка запуска сервера: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Неизвестная ошибка: " + e.getMessage());
         }
+    }
 
     private static void initializeTestData(TaskManager manager) {
         //  тестовые данные

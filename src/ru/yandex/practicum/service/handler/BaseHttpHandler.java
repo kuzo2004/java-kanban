@@ -155,6 +155,9 @@ public class BaseHttpHandler implements HttpHandler {
 
 
     protected String getPathParam(HttpExchange exchange) {
+        if (exchange == null || exchange.getRequestURI() == null) {
+            throw new IllegalArgumentException("Exchange or RequestURI is null");
+        }
         String requestedPath = exchange.getRequestURI().getPath();
         String beginPath = path + "/";
         return requestedPath.substring(requestedPath.indexOf(beginPath) + beginPath.length());
