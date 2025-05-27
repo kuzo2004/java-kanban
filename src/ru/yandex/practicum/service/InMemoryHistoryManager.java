@@ -1,6 +1,6 @@
 package ru.yandex.practicum.service;
 
-import ru.yandex.practicum.entity.*;
+import ru.yandex.practicum.entity.Task;
 
 import java.util.*;
 
@@ -82,13 +82,8 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void clear() {
-        /*
-        Стандартный LinkedList  рекомендует очищать все ссылки
-         Clearing  of the links between nodes is "unnecessary", but:
-         - helps a generational GC if the discarded nodes inhabit
-           more than one generation
-         - is sure to free memory even if there is a reachable Iterator */
 
+        //Стандартный LinkedList  рекомендует очищать все ссылки
         if (tasksHistoryMap.isEmpty()) {
             return;
         }

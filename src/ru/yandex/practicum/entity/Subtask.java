@@ -1,12 +1,13 @@
 package ru.yandex.practicum.entity;
 
+import com.google.gson.annotations.Expose;
 import ru.yandex.practicum.exceptions.WrongParentEpicException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Subtask extends Task {
-
+    @Expose
     private Epic parentEpic;
 
 

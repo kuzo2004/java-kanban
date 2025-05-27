@@ -1,6 +1,9 @@
 package ru.yandex.practicum.service;
 
-import ru.yandex.practicum.entity.*;
+import ru.yandex.practicum.entity.Epic;
+import ru.yandex.practicum.entity.Status;
+import ru.yandex.practicum.entity.Task;
+import ru.yandex.practicum.entity.TaskType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
